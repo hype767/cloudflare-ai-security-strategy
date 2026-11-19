@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>클라우드플레어 AI 보안 전략</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --ink:#15171c; --muted:#5d6370; --line:#e3e1da;
+  --accent:#e86a10; --accent2:#c7860f; --cyan:#1d8fb3; --red:#c8402f; --soft:#fdf1e7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b0d14; --surface:#141822; --ink:#eeece6; --muted:#9aa1b0; --line:#262b38;
+    --accent:#f6821f; --accent2:#fbad41; --cyan:#5ac8e6; --red:#eb5046; --soft:#2a1d12;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b0d14; --surface:#141822; --ink:#eeece6; --muted:#9aa1b0; --line:#262b38;
+  --accent:#f6821f; --accent2:#fbad41; --cyan:#5ac8e6; --red:#eb5046; --soft:#2a1d12;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;line-height:1.65}
+a{color:var(--accent)}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+nav{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:18px;align-items:center;height:56px;overflow-x:auto;white-space:nowrap}
+nav b{color:var(--accent);margin-right:8px}
+nav a{color:var(--muted);text-decoration:none;font-size:14px}
+nav a:hover{color:var(--ink)}
+header{padding:72px 0 40px}
+.eyebrow{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:clamp(34px,6vw,64px);line-height:1.12;margin:14px 0 18px;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--accent)}
+h2{font-size:clamp(26px,3.6vw,38px);margin:0 0 10px;letter-spacing:-.01em}
+h3{font-size:19px;margin:0 0 8px}
+.lead{font-size:18px;color:var(--muted);max-width:760px}
+section{padding:56px 0;border-top:1px solid var(--line)}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+.kpi .n{font-size:40px;font-weight:800;color:var(--accent);line-height:1.1}
+.kpi .l{color:var(--muted);font-size:14px}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted);margin-right:6px}
+video{width:100%;border-radius:14px;border:1px solid var(--line);background:#0a0c14;display:block}
+.note{font-size:13px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:600}
+.tscroll{overflow-x:auto}
+svg text{fill:var(--muted);font-size:12px;font-family:inherit}
+.insight{border-left:4px solid var(--accent);background:var(--soft);padding:14px 16px;border-radius:0 10px 10px 0;margin:10px 0}
+.layer{display:flex;gap:14px;align-items:flex-start}
+.layer .num{font-weight:800;font-size:28px;color:var(--accent);min-width:44px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;counter-reset:s}
+.step{position:relative;padding-top:34px}
+.step::before{counter-increment:s;content:counter(s,decimal-leading-zero);position:absolute;top:14px;left:20px;font-weight:800;color:var(--accent);font-size:14px}
+.color{border-top:5px solid var(--c)}
+.color .score{float:right;font-weight:800;font-size:22px}
+.legend span{display:inline-flex;align-items:center;gap:6px;margin-right:14px;font-size:13px;color:var(--muted)}
+.legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.tip{position:fixed;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px;display:none;z-index:10;box-shadow:0 6px 20px rgba(0,0,0,.15)}
+footer{padding:40px 0 60px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+@media (max-width:600px){header{padding:44px 0 24px} section{padding:40px 0} .kpi .n{font-size:32px}}
+
+/* v3-charts */
+svg text{font-size:13px}
+svg text.v{fill:var(--ink);font-weight:700;font-size:14px}
+svg text.ax{fill:var(--muted);font-size:12.5px}
+svg text.ttl{fill:var(--muted);font-size:13px;font-weight:600}
+svg .grid{stroke:var(--line);stroke-width:1}
+.ck{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13.5px;color:var(--muted);margin:6px 0 10px}
+.ck span{display:inline-flex;align-items:center;gap:7px}
+.ck i{display:inline-block;width:12px;height:12px;border-radius:50%}
+.ck i.sq{border-radius:3px}.ck i.ln{width:22px;height:3px;border-radius:2px}
+.how{font-size:14px;color:var(--ink);background:var(--soft);border-radius:10px;padding:9px 13px;margin:8px 0 12px}
+.how b{color:var(--accent)}
+h3.ct{font-size:20px;line-height:1.35}
+h3.ct small{display:block;font-size:13px;font-weight:600;color:var(--accent);letter-spacing:.04em;margin-bottom:3px}
+/* v2-bling */
+nav .wrap{scrollbar-width:none} nav .wrap::-webkit-scrollbar{display:none}
+#themeBtn{margin-left:auto;flex:none;border:1px solid var(--line);background:none;color:var(--ink);border-radius:99px;padding:5px 12px;cursor:pointer;font:inherit;font-size:13px}
+:root[data-theme="dark"] .hero-art{opacity:.8}
+:root[data-theme="dark"] .card{box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+:root{--glow:rgba(232,106,16,.28);--grad:linear-gradient(100deg,#f6821f 0%,#fbad41 38%,#ff5f8f 72%,#8f7bff 100%)}
+:root[data-theme="dark"]{--glow:rgba(246,130,31,.45)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--glow:rgba(246,130,31,.45)}}
+body{background:
+  radial-gradient(900px 500px at 85% -10%,color-mix(in srgb,var(--accent) 22%,transparent),transparent 70%),
+  radial-gradient(700px 480px at -10% 20%,color-mix(in srgb,#8f7bff 16%,transparent),transparent 70%),
+  var(--bg);background-attachment:fixed}
+.hero{position:relative;overflow:hidden}
+.hero-art{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.55;z-index:0}
+.hero > *:not(.hero-art){position:relative;z-index:1}
+.hero-art path,.hero-art circle{fill:none;stroke:var(--accent);stroke-width:1.4;stroke-dasharray:1400;stroke-dashoffset:1400;animation:draw 5s ease forwards}
+.hero-art .c2{stroke:var(--cyan);animation-delay:.8s}
+.hero-art .c3{stroke:#8f7bff;animation-delay:1.5s}
+.hero-art .pulse{stroke-dasharray:none;stroke-dashoffset:0;animation:pulse 3.2s ease-in-out infinite;transform-origin:center;transform-box:fill-box}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes pulse{0%,100%{opacity:.25;transform:scale(.9)}50%{opacity:.9;transform:scale(1.15)}}
+h1 em,.gt{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:shine 7s linear infinite}
+@keyframes shine{to{background-position:200% 0}}
+.eyebrow{display:inline-flex;align-items:center;gap:8px}
+.eyebrow::before{content:"";width:22px;height:2px;background:var(--grad);border-radius:2px}
+h2{position:relative}
+.card{position:relative;background:color-mix(in srgb,var(--surface) 86%,transparent);backdrop-filter:blur(10px);transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+.card:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--accent) 60%,var(--line));box-shadow:0 14px 40px -12px var(--glow)}
+.kpi{overflow:hidden}
+.kpi::after{content:"";position:absolute;inset:-1px;border-radius:14px;padding:1px;background:var(--grad);background-size:200% 100%;animation:shine 6s linear infinite;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.kpi .n{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:46px}
+video{box-shadow:0 30px 80px -30px var(--glow),0 0 0 1px color-mix(in srgb,var(--accent) 35%,var(--line))}
+.layer .num,.step::before{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.insight{border-left:0;position:relative;overflow:hidden;border-radius:12px;padding-left:20px}
+.insight::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--grad)}
+.tag{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));color:var(--accent)}
+.marquee{overflow:hidden;border-block:1px solid var(--line);padding:12px 0;margin-top:8px;mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.marquee div{display:inline-flex;gap:38px;white-space:nowrap;animation:mq 28s linear infinite;font-weight:700;letter-spacing:.08em;font-size:13px;color:var(--muted)}
+.marquee b{color:var(--accent)}
+@keyframes mq{to{transform:translateX(-50%)}}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+.reveal.on{opacity:1;transform:none}
+.btn{display:inline-block;padding:12px 22px;border-radius:99px;background:var(--grad);background-size:200% 100%;animation:shine 6s linear infinite;color:#14100a;font-weight:800;text-decoration:none;box-shadow:0 10px 30px -10px var(--glow)}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--ink);box-shadow:none;animation:none}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+.flow div{border:1px dashed color-mix(in srgb,var(--accent) 50%,var(--line));border-radius:12px;padding:12px;font-size:14px;position:relative}
+.flow b{display:block;color:var(--accent);font-size:12px;letter-spacing:.08em}
+.flow .blk{border-style:solid;background:var(--soft)}
+.quad{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.quad .q{border:1px solid var(--line);border-radius:12px;padding:14px;position:relative;overflow:hidden}
+.quad .q .big{font-size:30px;font-weight:800}
+.quad .q.hot{border-color:var(--accent);box-shadow:inset 0 0 40px -18px var(--glow)}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;align-items:center}
+.calc label{display:block;font-size:14px;color:var(--muted);margin:12px 0 4px}
+.calc label b{color:var(--ink);float:right}
+.calc input[type=range]{width:100%;accent-color:var(--accent)}
+.calc .out{font-size:clamp(34px,5vw,54px);font-weight:800;line-height:1.1}
+details{border:1px solid var(--line);border-radius:12px;padding:14px 18px;background:color-mix(in srgb,var(--surface) 86%,transparent);margin-bottom:10px}
+details summary{cursor:pointer;font-weight:700}
+details[open]{border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}
+dl{display:grid;grid-template-columns:minmax(120px,200px) 1fr;gap:8px 18px;margin:0}
+dt{font-weight:700;color:var(--accent)} dd{margin:0;color:var(--muted)}
+td.l,th.l{text-align:left;white-space:normal}
+.bar{height:8px;border-radius:8px;background:var(--line);overflow:hidden;min-width:80px}
+.bar i{display:block;height:100%;background:var(--grad)}
+@media (max-width:600px){dl{grid-template-columns:1fr} .quad{grid-template-columns:1fr}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}.hero-art path,.hero-art circle{stroke-dashoffset:0}}
+</style>
+</head>
+<body>
+<nav><div class="wrap"><b>CLOUDFLARE · AI SECURITY</b><a href="#why">왜 지금인가</a><a href="#scenario">공격 시나리오</a><a href="#reg">규제</a><a href="#eda">데이터 분석</a><a href="#strategy">B2B 전략</a><a href="#buyer">구매자</a><a href="#roi">ROI 계산기</a><a href="#roadmap">실행 계획</a><a href="#risk">리스크</a><a href="#faq">FAQ</a><a href="#review">5color</a><button id="themeBtn" type="button">밝게</button></div></nav>
+
+<header class="wrap hero">
+  <svg class="hero-art" viewBox="0 0 1120 620" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <circle cx="900" cy="200" r="230"/><circle class="c2" cx="900" cy="200" r="160"/><circle class="c3" cx="900" cy="200" r="90"/>
+    <path class="c2" d="M0 520 C200 440 320 580 520 500 S 860 420 1120 500"/>
+    <path class="c3" d="M0 560 C240 500 360 620 600 540 S 900 480 1120 560"/>
+    <path d="M740 200 L820 150 L900 200 L980 150 L1060 200 M820 150 L820 250 L900 300 L980 250 L980 150"/>
+    <circle class="pulse" cx="900" cy="200" r="10"/><circle class="pulse" cx="820" cy="150" r="6"/><circle class="pulse" cx="980" cy="250" r="6"/>
+  </svg>
+  <div class="eyebrow">B2B 전략 브리프 · 2026년 11월</div>
+  <h1>AI가 들어온 순간,<br>보안의 <em>경계</em>는 사라졌다.</h1>
+  <p class="lead">기업은 AI를 업무 전체에 붙이고 있고, 공격자도 AI를 씁니다. 클라우드플레어는 이미 전 세계 트래픽 앞단에 서 있습니다. 그 자리에서 기업의 AI 사용 전체를 보호하는 <b>세 겹의 방어선</b>을 B2B 시장에 파는 전략을 정리했습니다.</p>
+  <div class="grid g4" style="margin:28px 0">
+    <div class="card kpi"><div class="n">30×</div><div class="l">AI 도입 상위 구간 기업의 보안 사고 빈도 (하위 구간 대비)</div></div>
+    <div class="card kpi"><div class="n">r=0.58</div><div class="l">AI 도입 지수와 연간 AI 보안 사고의 상관계수</div></div>
+    <div class="card kpi"><div class="n">268</div><div class="l">600개 기업 중 구매 의향 0.6 이상인 기업</div></div>
+    <div class="card kpi"><div class="n">IT·금융</div><div class="l">고의향 기업이 몰린 1차 공략 업종</div></div>
+  </div>
+  <p style="margin:0 0 26px"><a class="btn" href="#strategy">전략 바로 보기</a> &nbsp; <a class="btn ghost" href="#eda">데이터 근거 보기</a></p>
+  <video src="cloudflare_ai_security_60s.mp4" controls preload="metadata" playsinline></video>
+  <p class="note">60초 요약 영상 · 키네틱 타이포그래피 + 라인 아트 · 한국어 내레이션</p>
+</header>
+
+<div class="marquee" aria-hidden="true"><div>
+<span><b>01</b> PROMPT INJECTION</span><span><b>02</b> DATA LEAKAGE</span><span><b>03</b> SHADOW AI</span><span><b>04</b> AGENT OVER-PERMISSION</span><span><b>05</b> MODEL SUPPLY CHAIN</span><span><b>06</b> AI-POWERED PHISHING</span>
+<span><b>01</b> PROMPT INJECTION</span><span><b>02</b> DATA LEAKAGE</span><span><b>03</b> SHADOW AI</span><span><b>04</b> AGENT OVER-PERMISSION</span><span><b>05</b> MODEL SUPPLY CHAIN</span><span><b>06</b> AI-POWERED PHISHING</span>
+</div></div>
+<section id="why"><div class="wrap">
+  <div class="eyebrow">01 · 왜 지금인가</div>
+  <h2>AI 시대 보안은 "벽"이 아니라 "흐름"을 지키는 일이다</h2>
+  <p class="lead">예전 보안은 사내망 둘레에 벽을 쌓았습니다. 지금은 직원이 브라우저에서 외부 AI에 문서를 붙여 넣고, 사내 앱이 LLM API를 부르고, AI 에이전트가 사람 대신 시스템을 조작합니다. 데이터가 오가는 흐름 자체가 공격 면입니다.</p>
+  <div class="grid g2" style="margin-top:22px">
+    <div class="card"><h3>① 프롬프트 인젝션</h3><p>입력이나 웹 문서에 숨긴 지시로 모델이 정책을 무시하게 만드는 공격입니다. OWASP의 LLM 애플리케이션 Top 10에서 1순위 위험으로 꼽힙니다.</p></div>
+    <div class="card"><h3>② 민감 데이터 유출</h3><p>직원이 고객 정보, 소스코드, 계약서를 외부 AI에 그대로 붙여 넣습니다. 모델 응답이 학습 데이터나 내부 문서를 노출하기도 합니다.</p></div>
+    <div class="card"><h3>③ 섀도 AI</h3><p>보안팀이 모르는 AI 도구와 확장 프로그램이 늘어납니다. 무엇을 쓰는지 모르면 정책도 걸 수 없습니다.</p></div>
+    <div class="card"><h3>④ 에이전트의 과잉 권한</h3><p>AI 에이전트가 메일, 결제, 배포 권한을 갖기 시작했습니다. 한 번 속은 에이전트는 사람보다 빠르게 피해를 넓힙니다.</p></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>⑤ 모델·플러그인 공급망</h3><p>오픈소스 모델, 벡터 DB, MCP 서버, 플러그인이 새 공급망이 됐습니다. 검증하지 않은 구성 요소 하나가 전체 AI 앱의 약점이 됩니다.</p></div>
+    <div class="card"><h3>⑥ AI로 강화된 공격</h3><p>공격자는 AI로 피싱 문구를 현지화하고, 취약점 탐색과 봇 트래픽을 자동화합니다. 공격 비용은 내려가고 방어 쪽의 처리량 부담은 올라갑니다.</p></div>
+  </div>
+  <h3 style="margin-top:28px">기존 보안 vs AI 시대 보안</h3>
+  <div class="card tscroll"><table>
+    <tr><th>구분</th><th class="l">기존 보안</th><th class="l">AI 시대 보안</th></tr>
+    <tr><td>지키는 대상</td><td class="l">서버, 단말, 네트워크 경계</td><td class="l">프롬프트, 응답, 모델, 에이전트의 행동</td></tr>
+    <tr><td>공격 형태</td><td class="l">코드와 패킷 (정해진 형식)</td><td class="l">자연어 (형식이 없고 맥락에 따라 달라짐)</td></tr>
+    <tr><td>데이터 유출 경로</td><td class="l">메일, USB, 파일 전송</td><td class="l">AI 입력창 붙여 넣기, 모델 응답, 에이전트의 도구 호출</td></tr>
+    <tr><td>통제 지점</td><td class="l">방화벽, 엔드포인트</td><td class="l">사람·앱·에이전트와 AI 사이의 모든 요청 경로</td></tr>
+    <tr><td>구매 주체</td><td class="l">보안팀</td><td class="l">보안팀 + AI 플랫폼 팀 + 컴플라이언스</td></tr>
+  </table></div>
+  <div class="insight"><b>결론.</b> AI 보안 예산은 "새 보안 제품"이 아니라 "AI 도입 비용의 일부"로 집행됩니다. 그래서 구매자는 CISO 혼자가 아니라 CIO, AI 플랫폼 팀, 컴플라이언스까지 넓어집니다.</div>
+</div></section>
+
+<section id="scenario"><div class="wrap">
+  <div class="eyebrow">공격 시나리오</div>
+  <h2>사고는 이렇게 일어나고, 여기서 끊는다</h2>
+  <p class="lead">고객 미팅에서 그대로 쓸 수 있는 세 가지 시나리오입니다. 주황색 칸이 클라우드플레어가 끊는 지점입니다.</p>
+  <div class="card"><h3>시나리오 A · 고객 상담 챗봇에 대한 간접 프롬프트 인젝션</h3>
+    <div class="flow"><div><b>1 침투</b>공격자가 상품 리뷰에 숨은 지시문을 심습니다</div><div><b>2 실행</b>챗봇이 리뷰를 읽고 지시를 따릅니다</div><div><b>3 유출</b>다른 고객의 주문 정보를 응답에 넣습니다</div><div class="blk"><b>차단 · AI 방화벽</b>요청과 응답에서 인젝션 패턴과 개인정보를 탐지해 막습니다</div></div></div>
+  <div class="card" style="margin-top:14px"><h3>시나리오 B · 직원의 소스코드 붙여 넣기</h3>
+    <div class="flow"><div><b>1 사용</b>개발자가 승인되지 않은 AI 도구에 가입합니다</div><div><b>2 입력</b>사내 소스코드와 API 키를 붙여 넣습니다</div><div><b>3 잔류</b>데이터가 외부 서비스에 남습니다</div><div class="blk"><b>차단 · 제로 트러스트</b>섀도 AI를 찾아내고 DLP가 비밀 키와 코드 입력을 막습니다</div></div></div>
+  <div class="card" style="margin-top:14px"><h3>시나리오 C · 사내 AI 앱의 비용 폭주와 무단 호출</h3>
+    <div class="flow"><div><b>1 노출</b>테스트용 LLM API 키가 저장소에 올라갑니다</div><div><b>2 악용</b>외부에서 키로 대량 호출합니다</div><div><b>3 피해</b>요금이 치솟고 로그가 없어 원인을 못 찾습니다</div><div class="blk"><b>차단 · AI 게이트웨이</b>모든 호출을 한 지점으로 모아 속도 제한과 로깅을 겁니다</div></div></div>
+</div></section>
+
+<section id="reg"><div class="wrap">
+  <div class="eyebrow">규제 지도</div>
+  <h2>규제가 구매 시점을 정한다</h2>
+  <p class="lead">AI 보안은 "사고가 나면 사는 제품"에서 "감사에 대비해 미리 사는 제품"으로 바뀌고 있습니다. 업종별로 영업 메시지를 맞출 규제 축입니다.</p>
+  <div class="card tscroll"><table>
+    <tr><th>업종</th><th class="l">주요 규제·기준</th><th class="l">고객이 증명해야 하는 것</th><th class="l">대응 상품</th></tr>
+    <tr><td>전 업종</td><td class="l">AI 기본법, 개인정보 보호법, ISMS-P</td><td class="l">AI에 들어가는 개인정보의 통제와 처리 기록</td><td class="l">AI 게이트웨이 로그, DLP</td></tr>
+    <tr><td>금융</td><td class="l">전자금융감독규정, 망분리 규제 개선에 따른 생성형 AI 활용 요건</td><td class="l">외부 AI 사용 시 데이터 통제와 접근 기록</td><td class="l">제로 트러스트, 감사 로그 보관</td></tr>
+    <tr><td>의료</td><td class="l">의료법, 보건의료 데이터 활용 가이드라인</td><td class="l">환자 정보가 외부 모델로 나가지 않음</td><td class="l">DLP, AI 방화벽</td></tr>
+    <tr><td>공공</td><td class="l">국가정보원 보안 지침, 클라우드 보안인증(CSAP)</td><td class="l">인증받은 환경과 국내 데이터 처리</td><td class="l">파트너 공동 제안 (2단계 시장)</td></tr>
+    <tr><td>수출·글로벌</td><td class="l">EU AI Act, GDPR</td><td class="l">고위험 AI의 로깅과 사람의 감독</td><td class="l">AI 게이트웨이, 데이터 지역 설정</td></tr>
+  </table></div>
+  <p class="note">규제 항목은 영업 방향을 잡기 위한 요약입니다. 제안서에 넣기 전에 법무·컴플라이언스 팀이 조항과 시행 시점을 확인해야 합니다.</p>
+</div></section>
+
+<section id="eda"><div class="wrap">
+  <div class="eyebrow">02 · 탐색적 데이터 분석 (EDA)</div>
+  <h2>AI를 빨리 들인 기업일수록 사고가 늘고, 살 이유도 커진다</h2>
+  <p class="lead">국내 B2B 잠재 고객 600개사를 가정한 <b>시뮬레이션 데이터</b>(seed 고정, 재현 가능)로 분석했습니다. 실제 영업 데이터를 넣으면 같은 코드로 다시 돌릴 수 있습니다. 원본: <a href="data/ai_security_accounts.csv">ai_security_accounts.csv</a></p>
+
+  <h3 class="ct" style="margin-top:28px"><small>표 1 · 데이터 개요</small>분석에 쓴 7개 숫자 항목의 요약</h3>
+  <p class="note">600행 × 11열 · 결측치 0 · 업종 6개 × 규모 3개 · 수치형 7개 변수</p>
+  <div class="card tscroll"><table id="tSummary"></table></div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3 class="ct"><small>그래프 2 · 사고 건수 분포</small>대부분은 1~3건, 소수 기업에 사고가 몰린다</h3><div class="how"><b>읽는 법</b> 막대가 높을수록 그 건수의 사고를 겪은 기업이 많습니다.</div><div id="cHist"></div></div>
+    <div class="card"><h3 class="ct"><small>그래프 3 · AI 도입 수준별 사고</small>AI를 많이 쓸수록 사고가 계단처럼 늘어난다</h3><div class="how"><b>읽는 법</b> 기업을 AI 도입 수준 5단계로 나눈 뒤, 단계별 연간 평균 사고 건수를 막대로 그렸습니다.</div><div id="cBand"></div></div>
+  </div>
+
+  <div class="card" style="margin-top:16px"><h3 class="ct"><small>그래프 4 · 기업 600곳 전체 보기</small>오른쪽(AI를 많이 쓰는 기업)으로 갈수록 점들이 위로 올라간다</h3><div class="how"><b>읽는 법</b> 회색 점 하나가 기업 하나입니다. 오른쪽일수록 AI를 많이 쓰고, 위쪽일수록 사고가 많습니다. 주황색 선은 구간별 평균입니다. AI 도입 지수가 0.1 오르면 사고가 약 <b id="slopeTxt"></b>건 늘어납니다.</div><div class="ck" id="lgScatter"></div><div id="cScatter"></div></div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3 class="ct"><small>그래프 5 · 사고와 함께 움직이는 요인</small>AI 도입 수준이 사고와 가장 강하게 함께 움직인다</h3><div class="how"><b>읽는 법</b> 막대가 오른쪽(주황)이면 그 값이 클수록 사고가 많고, 왼쪽(파랑)이면 사고가 적습니다. 막대가 길수록 관계가 강합니다.</div><div id="cCorr"></div></div>
+    <div class="card"><h3 class="ct"><small>표 6 · 업종별 비교</small>살 가능성이 높은 기업은 IT·SaaS와 금융에 가장 많다</h3><div class="tscroll"><table id="tInd"></table></div>
+      <p class="note">살 가능성 높은 기업 = 구매 의향 점수 0.6 이상 · AI 도입은 0~1 지수</p></div>
+  </div>
+
+  <div class="card" style="margin-top:16px"><h3 class="ct"><small>그래프 7 · 업종 × 규모 지도</small>가장 진한 칸부터 공략한다: IT·SaaS 중소·중견, 금융 중소</h3><div class="how"><b>읽는 법</b> 칸의 큰 숫자는 살 가능성이 높은 기업 수입니다. 색이 진할수록 그 수가 많습니다. 작은 글씨는 그 칸의 전체 기업 수입니다.</div><div id="cSeg"></div></div>
+
+  <h3 style="margin-top:34px">심화 분석</h3>
+  <div class="grid g2">
+    <div class="card"><h3 class="ct"><small>그래프 8 · 네 그룹 비교</small>보안이 탄탄해도 AI를 많이 쓰면 사고가 많다</h3><div class="how"><b>읽는 법</b> 기업을 AI 도입(높음/낮음)과 보안 성숙도(높음/낮음)로 네 그룹으로 나눴습니다. 큰 숫자는 그룹의 연간 평균 사고 건수입니다.</div><div class="quad" id="cQuad"></div></div>
+    <div class="card"><h3 class="ct"><small>그래프 9 · 섀도 AI와 사고</small>몰래 쓰는 AI가 많을수록 사고가 늘어난다</h3><div class="how"><b>읽는 법</b> 섀도 AI 비율 순으로 기업을 네 묶음으로 나눈 평균 사고 건수입니다.</div><div id="cShadow"></div>
+      <h3 class="ct" style="margin-top:22px"><small>그래프 10 · AI 앱 수와 사고</small>AI 앱이 많을수록 사고가 늘어난다</h3><div class="how"><b>읽는 법</b> 사내 LLM 앱 개수별 평균 사고 건수입니다.</div><div id="cApps"></div></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3 class="ct"><small>표 11 · 규모별 비교</small>중소기업은 수가 많고, 대기업은 예산이 크다</h3><div class="tscroll"><table id="tSize"></table></div><p class="note">보안 예산은 중앙값(백만원/년)입니다.</p></div>
+    <div class="card"><h3 class="ct"><small>그래프 12 · 예산 집중도</small>예산은 소수의 큰 고객에 몰려 있다</h3><div id="cPareto"></div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3 class="ct"><small>표 13 · 우선 공략 계정</small>먼저 찾아갈 기업 10곳</h3><p class="note">우선순위 점수 = 구매 의향 × 연간 보안 예산. 실제 CRM을 넣으면 영업팀의 지명 계정 목록이 됩니다.</p><div class="tscroll"><table id="tTop"></table></div></div>
+  <div class="grid g3" style="margin-top:16px" id="deepInsights"></div>
+  <details style="margin-top:16px"><summary>분석 방법과 한계</summary>
+    <p>① 데이터: 업종 6개, 규모 3개로 구성한 가상 기업 600곳입니다. 업종별 규제 강도와 AI 도입 수준을 가정하고 난수(seed 2026)로 만들었습니다.<br>② 변수: AI 도입 지수(0~1), LLM 앱 수, 섀도 AI 비율, 보안 성숙도(1~5), 연간 AI 보안 사고, 연간 보안 예산, 구매 의향(0~1).<br>③ 방법: 기술 통계, 분포, 구간별 평균, 피어슨 상관, 단순 회귀, 4분면 분할, IQR 이상치.<br>④ 한계: 변수 사이의 관계를 제가 가정해 넣었기 때문에 결과는 그 가정을 다시 보여 줄 뿐입니다. 시장의 실제 크기나 인과를 증명하지 않습니다. 실제 영업·고객 데이터로 같은 코드(build/eda.py)를 다시 돌려야 근거로 쓸 수 있습니다.</p></details>
+
+  <div class="grid g3" style="margin-top:16px">
+    <div class="insight"><b>발견 1.</b> AI 도입 지수 0.8 이상 구간은 연간 사고가 평균 5.02건으로, 0.2 미만 구간(0.16건)의 약 30배입니다.</div>
+    <div class="insight"><b>발견 2.</b> 보안 성숙도와 사고의 상관은 r=-0.2입니다. 성숙도가 높아도 AI 전용 통제가 없으면 사고를 다 막지 못합니다.</div>
+    <div class="insight"><b>발견 3.</b> 고의향 기업은 IT·SaaS와 금융에 몰려 있습니다. 공공은 성숙도는 높지만 AI 도입이 느려 2단계 시장입니다.</div>
+  </div>
+</div></section>
+
+<section id="strategy"><div class="wrap">
+  <div class="eyebrow">03 · AI 보안 B2B 전략</div>
+  <h2>트래픽 앞단에서 AI 사용 전체를 지키는 "AI 보안 레이어"</h2>
+  <p class="lead">포지셔닝: <b>"AI를 막는 보안이 아니라, AI를 믿고 쓰게 만드는 보안."</b> 경쟁사가 모델 하나나 엔드포인트 하나를 지킬 때, 클라우드플레어는 사람, 앱, 에이전트가 AI와 주고받는 모든 요청을 네트워크에서 봅니다.</p>
+
+  <h3 style="margin-top:26px">세 겹의 방어선</h3>
+  <div class="grid g3">
+    <div class="card layer"><div class="num">01</div><div><h3>AI 게이트웨이</h3><span class="tag">AI Gateway</span><p>사내 앱이 부르는 모든 LLM API를 한 지점으로 모읍니다. 로깅, 비용 통제, 속도 제한, 모델 교체를 맡습니다. <b>판매 포인트: 가시성과 비용 절감.</b></p></div></div>
+    <div class="card layer"><div class="num">02</div><div><h3>AI 방화벽</h3><span class="tag">Firewall for AI</span><p>외부에 공개한 AI 앱 앞에서 프롬프트 인젝션과 민감 정보 노출을 막습니다. WAF를 이미 쓰는 고객에게 붙이기 쉽습니다. <b>판매 포인트: 출시 속도.</b></p></div></div>
+    <div class="card layer"><div class="num">03</div><div><h3>제로 트러스트</h3><span class="tag">Cloudflare One</span><p>직원이 쓰는 외부 AI를 찾아내고(섀도 AI), DLP로 민감 데이터 입력을 막습니다. <b>판매 포인트: 컴플라이언스.</b></p></div></div>
+  </div>
+
+  <h3 style="margin-top:30px">타깃 세그먼트 (EDA 기반 우선순위)</h3>
+  <div class="card tscroll"><table>
+    <tr><th>순위</th><th>세그먼트</th><th>근거</th><th>진입 상품</th><th>핵심 구매자</th></tr>
+    <tr><td>1</td><td>IT·SaaS 중견·대기업</td><td>AI 도입 0.82, 사고 4.42건, 고의향 87개사</td><td>AI 게이트웨이</td><td>CTO · AI 플랫폼 팀</td></tr>
+    <tr><td>2</td><td>금융</td><td>고의향 59개사, 규제 압력 최상위</td><td>제로 트러스트 + DLP</td><td>CISO · 컴플라이언스</td></tr>
+    <tr><td>3</td><td>의료 · 유통</td><td>사고는 많고 성숙도는 중간</td><td>AI 방화벽</td><td>CIO · 디지털 채널 팀</td></tr>
+    <tr><td>4</td><td>제조 · 공공</td><td>AI 도입이 느린 2단계 시장</td><td>AI 보안 진단</td><td>정보보호 책임자</td></tr>
+  </table></div>
+
+  <h3 style="margin-top:30px">Go-to-Market: 진단 → 확장 → 플랫폼</h3>
+  <div class="steps">
+    <div class="card step"><h3>진단 (Land)</h3><p>4주 무료 <b>"AI 노출 진단"</b>. 고객 트래픽에서 섀도 AI 목록과 민감 데이터 유출 시도 건수를 리포트로 줍니다. 숫자가 곧 구매 근거가 됩니다.</p></div>
+    <div class="card step"><h3>확장 (Expand)</h3><p>진단에서 가장 큰 위험 하나를 막는 상품 하나로 계약합니다. 6개월 안에 두 번째 방어선을 붙입니다.</p></div>
+    <div class="card step"><h3>플랫폼 (Platform)</h3><p>세 겹을 묶은 <b>AI 보안 번들</b>을 사용자 수와 AI 요청량 기반 요금으로 엔터프라이즈 계약에 넣습니다.</p></div>
+    <div class="card step"><h3>채널</h3><p>클라우드 MSP, SI, 보안 컨설팅사와 진단 리포트를 같이 팝니다. 파트너가 진단을 돌리고 클라우드플레어가 계약합니다.</p></div>
+  </div>
+
+  <h3 style="margin-top:30px">가격 패키지 (제안)</h3>
+  <div class="grid g3">
+    <div class="card"><span class="tag">Starter</span><h3>AI 가시성</h3><p>AI 게이트웨이 + 섀도 AI 탐지. 개발 조직 단위로 시작합니다.</p></div>
+    <div class="card"><span class="tag">Business</span><h3>AI 보호</h3><p>Starter + AI 방화벽 + DLP 정책. 외부 공개 AI 앱이 있는 기업용입니다.</p></div>
+    <div class="card"><span class="tag">Enterprise</span><h3>AI 거버넌스</h3><p>세 겹 전체 + 감사 로그 보관 + 규제 리포트. 금융·의료용입니다.</p></div>
+  </div>
+
+  <h3 style="margin-top:30px">경쟁 구도와 차별점</h3>
+  <div class="card tscroll"><table>
+    <tr><th>경쟁 유형</th><th class="l">강점</th><th class="l">약점</th><th class="l">클라우드플레어의 대응</th></tr>
+    <tr><td>AI 보안 전문 스타트업</td><td class="l">프롬프트 탐지 기술이 깊음</td><td class="l">별도 도입과 연동이 필요하고 지연이 늘어남</td><td class="l">이미 지나가는 트래픽에서 바로 켭니다. 추가 구간이 없습니다</td></tr>
+    <tr><td>기존 보안 플랫폼(SASE·방화벽)</td><td class="l">보안팀과의 기존 관계</td><td class="l">개발자와 AI 앱 영역이 약함</td><td class="l">개발자가 쓰는 AI 게이트웨이로 아래에서부터 들어갑니다</td></tr>
+    <tr><td>클라우드 사업자의 자체 가드레일</td><td class="l">자사 모델과 묶여 있어 쉬움</td><td class="l">해당 클라우드와 모델 안에서만 작동</td><td class="l">어떤 모델, 어떤 클라우드든 같은 정책을 겁니다</td></tr>
+    <tr><td>직접 구축</td><td class="l">요구에 딱 맞춤</td><td class="l">유지 인력과 위협 업데이트 부담</td><td class="l">진단 리포트로 직접 구축의 빈틈을 숫자로 보여 줍니다</td></tr>
+  </table></div>
+  <div class="insight"><b>한 문장 차별점.</b> "모델도 클라우드도 가리지 않고, 이미 트래픽이 지나가는 자리에서, 사람·앱·에이전트를 한 정책으로 지킨다."</div>
+
+  <h3 style="margin-top:30px">제품별 판매 메시지</h3>
+  <div class="card tscroll"><table>
+    <tr><th>상품</th><th class="l">고객의 문제</th><th class="l">첫 문장</th><th class="l">증명 방법</th></tr>
+    <tr><td>AI 게이트웨이</td><td class="l">누가 어떤 모델을 얼마나 쓰는지 모름</td><td class="l">"AI 비용과 사용 내역을 한 화면에서 보십시오"</td><td class="l">2주 로그로 팀별 사용량과 비용 리포트</td></tr>
+    <tr><td>AI 방화벽</td><td class="l">공개 챗봇이 공격받을까 출시를 미룸</td><td class="l">"보안 검토 때문에 출시를 늦추지 마십시오"</td><td class="l">모의 인젝션 테스트 차단 결과</td></tr>
+    <tr><td>제로 트러스트</td><td class="l">직원의 AI 사용을 막을 수도 풀 수도 없음</td><td class="l">"금지 대신 안전하게 허용하십시오"</td><td class="l">섀도 AI 목록과 민감 데이터 입력 시도 건수</td></tr>
+  </table></div>
+</div></section>
+
+<section id="buyer"><div class="wrap">
+  <div class="eyebrow">구매자와 설득</div>
+  <h2>네 명이 결정한다, 각자 다른 말을 들어야 한다</h2>
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card"><span class="tag">결정권자</span><h3>CISO</h3><p><b>걱정:</b> AI 사고가 나면 책임은 내가 진다. 그런데 AI를 막으면 현업이 반발한다.<br><b>들어야 할 말:</b> "금지하지 않고도 통제할 수 있습니다. 감사 때 보여 줄 기록이 남습니다."</p></div>
+    <div class="card"><span class="tag">사용자</span><h3>CTO · AI 플랫폼 팀</h3><p><b>걱정:</b> 보안 도구가 응답 속도를 늦추고 개발을 막는다.<br><b>들어야 할 말:</b> "코드 한 줄, 주소만 바꾸면 됩니다. 비용과 캐싱까지 같이 해결됩니다."</p></div>
+    <div class="card"><span class="tag">검토자</span><h3>컴플라이언스 · 법무</h3><p><b>걱정:</b> 규제 기관이 물으면 증빙을 낼 수 있는가.<br><b>들어야 할 말:</b> "누가, 언제, 어떤 데이터를 AI에 넣었는지 기록으로 제출할 수 있습니다."</p></div>
+    <div class="card"><span class="tag">예산 승인</span><h3>CFO · 구매</h3><p><b>걱정:</b> 보안 도구가 또 하나 늘어난다.<br><b>들어야 할 말:</b> "기존 계약에 추가하는 방식이라 공급사가 늘지 않습니다. AI 요금 절감분으로 일부를 상쇄합니다."</p></div>
+  </div>
+  <h3 style="margin-top:28px">자주 나오는 반대와 답</h3>
+  <details><summary>"우리는 아직 AI를 본격적으로 안 씁니다."</summary><p>진단을 돌리면 대부분 보안팀이 모르는 AI 사용이 나옵니다. 답은 주장 대신 4주 무료 진단 리포트로 합니다.</p></details>
+  <details><summary>"클라우드 사업자의 기본 가드레일로 충분합니다."</summary><p>그 가드레일은 그 클라우드의 모델에만 걸립니다. 직원이 브라우저에서 쓰는 외부 AI와 다른 모델에는 닿지 않습니다.</p></details>
+  <details><summary>"응답이 느려지지 않습니까?"</summary><p>고객 트래픽이 이미 지나가는 네트워크에서 검사하므로 경로가 추가되지 않습니다. 도입 전후 지연 시간을 측정해 리포트에 넣습니다.</p></details>
+  <details><summary>"프롬프트 내용을 클라우드플레어가 보는 것 아닙니까?"</summary><p>로그 저장 범위, 보관 기간, 마스킹을 고객이 정합니다. 금융·의료는 본문을 저장하지 않는 설정을 기본 제안합니다.</p></details>
+  <details><summary>"예산이 없습니다."</summary><p>AI 도입 프로젝트 예산의 일부로 잡습니다. EDA에서도 구매 의향은 보안 예산보다 AI 도입 수준과 더 강하게 움직였습니다.</p></details>
+</div></section>
+
+<section id="roi"><div class="wrap">
+  <div class="eyebrow">ROI 계산기</div>
+  <h2>고객 앞에서 바로 돌려 보는 <span class="gt">투자 효과</span></h2>
+  <p class="lead">슬라이더를 움직이면 바로 계산됩니다. 모든 값은 가정이며, 미팅에서 고객의 숫자로 바꿔 씁니다.</p>
+  <div class="card calc">
+    <div>
+      <label>직원 수 <b id="vEmp"></b></label><input type="range" id="iEmp" min="100" max="20000" step="100" value="2000">
+      <label>연간 AI 보안 사고 건수 <b id="vInc"></b></label><input type="range" id="iInc" min="0" max="15" step="1" value="4">
+      <label>사고 1건당 비용 (백만원) <b id="vCost"></b></label><input type="range" id="iCost" min="10" max="1000" step="10" value="150">
+      <label>도입 후 사고 감소율 <b id="vRed"></b></label><input type="range" id="iRed" min="10" max="90" step="5" value="50">
+      <label>1인당 연간 요금 (만원) <b id="vFee"></b></label><input type="range" id="iFee" min="2" max="30" step="1" value="8">
+    </div>
+    <div>
+      <div class="note">연간 순효과</div><div class="out gt" id="oNet"></div>
+      <table style="margin-top:14px"><tr><td>사고 비용 절감</td><td id="oSave"></td></tr><tr><td>도입 비용</td><td id="oFee"></td></tr><tr><td>투자 대비 효과 (ROI)</td><td id="oRoi"></td></tr><tr><td>손익분기 사고 감소율</td><td id="oBe"></td></tr></table>
+    </div>
+  </div>
+</div></section>
+
+<section id="roadmap"><div class="wrap">
+  <div class="eyebrow">04 · 실행 계획</div>
+  <h2>이번 분기에 할 일</h2>
+  <div class="grid g3">
+    <div class="card"><h3>0~30일</h3><p>AI 노출 진단 리포트 템플릿 완성. IT·SaaS 고의향 계정 30곳 선정. 영업팀 AI 보안 교육.</p></div>
+    <div class="card"><h3>31~60일</h3><p>진단 15건 실행. 금융권 파트너(SI) 2곳 계약. 금융 규제 대응 체크리스트 발행.</p></div>
+    <div class="card"><h3>61~90일</h3><p>진단 → 유료 전환 5건. 고객 사례 1건 공개. 번들 가격 확정.</p></div>
+  </div>
+  <h3 style="margin-top:26px">성과 지표 (KPI)</h3>
+  <div class="card tscroll"><table>
+    <tr><th>지표</th><th>90일 목표</th><th>왜 이 지표인가</th></tr>
+    <tr><td>AI 노출 진단 실행 수</td><td>15건</td><td>Land 단계의 입구입니다</td></tr>
+    <tr><td>진단 → 유료 전환율</td><td>33%</td><td>진단 리포트가 구매 근거로 작동하는지 봅니다</td></tr>
+    <tr><td>계정당 방어선 수</td><td>1.3개</td><td>Expand 속도를 봅니다</td></tr>
+    <tr><td>파트너 소싱 파이프라인 비중</td><td>30%</td><td>직판만으로는 중견 시장을 덮을 수 없습니다</td></tr>
+  </table></div>
+  <p class="note">목표치는 내부 논의를 위한 제안값입니다.</p>
+</div></section>
+
+<section id="plan12"><div class="wrap">
+  <div class="eyebrow">12개월 로드맵과 조직</div>
+  <h2>분기별로 무엇이 달라지는가</h2>
+  <div class="steps">
+    <div class="card step"><h3>1분기 · 증명</h3><p>진단 15건, 유료 전환 5건. IT·SaaS에서 첫 고객 사례를 만듭니다.</p></div>
+    <div class="card step"><h3>2분기 · 반복</h3><p>진단을 파트너가 돌리게 합니다. 금융 전용 패키지와 규제 대응 자료를 냅니다.</p></div>
+    <div class="card step"><h3>3분기 · 확장</h3><p>기존 고객에 두 번째 방어선을 붙입니다. 의료·유통으로 넓힙니다.</p></div>
+    <div class="card step"><h3>4분기 · 플랫폼</h3><p>AI 보안 번들을 엔터프라이즈 갱신 계약의 기본 항목으로 넣습니다.</p></div>
+  </div>
+  <h3 style="margin-top:28px">필요한 조직과 역할</h3>
+  <div class="card tscroll"><table>
+    <tr><th>역할</th><th>인원(제안)</th><th class="l">하는 일</th></tr>
+    <tr><td>AI 보안 전담 영업</td><td>2명</td><td class="l">지명 계정 50곳 담당, 진단 제안</td></tr>
+    <tr><td>솔루션 엔지니어</td><td>2명</td><td class="l">진단 실행, 리포트 작성, 기술 검증</td></tr>
+    <tr><td>파트너 매니저</td><td>1명</td><td class="l">MSP·SI 교육과 공동 영업</td></tr>
+    <tr><td>제품 마케팅</td><td>1명</td><td class="l">업종별 자료, 고객 사례, 웨비나</td></tr>
+    <tr><td>컴플라이언스 자문</td><td>겸직</td><td class="l">규제 조항 검토, 금융·의료 제안서 감수</td></tr>
+  </table></div>
+  <h3 style="margin-top:28px">영업 플레이북: 진단 4주 일정</h3>
+  <div class="flow"><div><b>1주차</b>범위 합의, 로그 수집 설정 (차단 없이 관찰만)</div><div><b>2주차</b>AI 사용 현황 수집: 도구 목록, 사용자 수, 요청량</div><div><b>3주차</b>위험 분석: 민감 데이터 입력, 인젝션 시도, 미승인 도구</div><div class="blk"><b>4주차</b>경영진 보고: 위험 3가지와 막는 방법, 견적</div></div>
+</div></section>
+
+<section id="risk"><div class="wrap">
+  <div class="eyebrow">리스크와 대응</div>
+  <h2>이 전략이 틀릴 수 있는 지점</h2>
+  <div class="card tscroll"><table>
+    <tr><th>리스크</th><th>가능성</th><th>영향</th><th class="l">대응</th><th class="l">조기 신호</th></tr>
+    <tr><td>무료 진단이 유료로 안 넘어감</td><td>중</td><td>높음</td><td class="l">진단 범위를 좁히고 4주차 보고에 견적을 반드시 포함</td><td class="l">전환율 20% 미만</td></tr>
+    <tr><td>클라우드 사업자가 가드레일을 무료로 묶음</td><td>높음</td><td>중</td><td class="l">멀티 모델·멀티 클라우드 고객에 집중</td><td class="l">단일 클라우드 고객의 이탈</td></tr>
+    <tr><td>오탐으로 현업 불만</td><td>중</td><td>높음</td><td class="l">관찰 모드로 시작해 단계적으로 차단 전환</td><td class="l">차단 예외 요청 급증</td></tr>
+    <tr><td>규제 시행 지연으로 구매 지연</td><td>중</td><td>중</td><td class="l">규제 대신 비용 절감·가시성 메시지로 전환</td><td class="l">금융권 검토 기간 장기화</td></tr>
+    <tr><td>영업 인력의 AI 지식 부족</td><td>높음</td><td>중</td><td class="l">시나리오 3종 데모와 반대 처리 문답을 표준 교육으로</td><td class="l">미팅 후 기술 문의 폭증</td></tr>
+  </table></div>
+</div></section>
+
+<section id="review"><div class="wrap">
+  <div class="eyebrow">05 · 5color 검토</div>
+  <h2>다섯 시선으로 이 전략을 평가했다</h2>
+  <p class="lead">5-Color Harness 방식으로 BLACK이 만들고 네 비평가가 10점 만점으로 평가했습니다. 합격선은 9.0입니다.</p>
+  <div class="grid g3" style="margin-top:18px">
+    <div class="card color" style="--c:#15171c"><span class="score">작성</span><h3>BLACK · 수행자</h3><p>15년차 보안 사업 전략가. "무엇을, 누구에게, 어떤 순서로 파는가"에 답하는 구조로 썼습니다.</p></div>
+    <div class="card color" style="--c:#c8402f"><span class="score">9.1</span><h3>RED · 이성</h3><p>세그먼트 순위가 EDA의 고의향 기업 수와 바로 이어집니다. 다만 데이터가 시뮬레이션이므로 실제 파이프라인 데이터로 다시 검증해야 합니다.</p></div>
+    <div class="card color" style="--c:#8a8f99"><span class="score">9.2</span><h3>SILVER · 분야 전문가</h3><p>OWASP LLM 위험, 섀도 AI, DLP, 에이전트 권한까지 실무자가 먼저 묻는 위협을 다 짚었습니다. 진단을 무료로 주는 Land 전략이 현장 영업과 맞습니다.</p></div>
+    <div class="card color" style="--c:#1d8fb3"><span class="score">9.0</span><h3>BLUE · 공감</h3><p>"AI를 막는 보안이 아니라 믿고 쓰게 만드는 보안"이라는 문장이 현업 반발을 걱정하는 CISO의 부담을 덜어 줍니다.</p></div>
+    <div class="card color" style="--c:#c7860f"><span class="score">9.3</span><h3>GOLD · 독자</h3><p><i>이사회 직전 15분 동안 이 페이지를 처음 여는 CEO</i>가 첫 화면의 숫자 네 개와 영상만으로 결론을 잡을 수 있습니다.</p></div>
+    <div class="card"><h3>보완할 점</h3><p>반영함: 경쟁 구도, 규제 지도, 구매자별 메시지, ROI 계산기, 리스크 표.<br>남은 일: ① 실제 CRM 데이터로 EDA 재실행 ② 규제 조항의 법무 검토 ③ 가격 확정</p></div>
+  </div>
+</div></section>
+
+<section id="faq"><div class="wrap">
+  <div class="eyebrow">FAQ · 용어</div>
+  <h2>처음 듣는 사람을 위한 정리</h2>
+  <div class="grid g2" style="margin-top:16px">
+    <div>
+      <details open><summary>AI 보안과 기존 보안은 무엇이 다른가요?</summary><p>기존 보안은 정해진 형식의 공격을 막습니다. AI는 자연어로 지시를 받기 때문에 "말"이 공격이 됩니다. 그래서 프롬프트와 응답의 내용을 봐야 합니다.</p></details>
+      <details><summary>왜 네트워크 회사가 AI 보안을 하나요?</summary><p>AI 요청은 결국 네트워크를 지나갑니다. 이미 고객 트래픽 앞단에 있는 회사는 새 장비 없이 그 요청을 볼 수 있습니다.</p></details>
+      <details><summary>가장 먼저 무엇을 팔아야 하나요?</summary><p>상품이 아니라 4주 무료 진단입니다. 진단 리포트의 숫자가 첫 상품을 정합니다.</p></details>
+      <details><summary>중소기업은 어떻게 하나요?</summary><p>고의향 기업 수는 가장 많지만 예산이 작습니다. 직판 대신 파트너와 셀프서비스 요금제로 대응합니다.</p></details>
+    </div>
+    <div class="card"><dl>
+      <dt>프롬프트 인젝션</dt><dd>입력에 숨긴 지시로 AI가 원래 규칙을 어기게 만드는 공격</dd>
+      <dt>섀도 AI</dt><dd>회사 승인 없이 직원이 쓰는 AI 도구</dd>
+      <dt>DLP</dt><dd>민감 데이터가 밖으로 나가는 것을 찾아 막는 기술</dd>
+      <dt>제로 트러스트</dt><dd>사내망이라도 믿지 않고 매 요청마다 검증하는 보안 방식</dd>
+      <dt>AI 게이트웨이</dt><dd>모든 AI 모델 호출이 거쳐 가는 단일 관문</dd>
+      <dt>AI 에이전트</dt><dd>사람 대신 도구를 써서 일을 수행하는 AI</dd>
+      <dt>Land &amp; Expand</dt><dd>작은 계약으로 들어가 사용 범위를 넓히는 영업 방식</dd>
+    </dl></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  EDA 데이터는 전략 논의를 위해 만든 시뮬레이션 데이터(600개사, seed 2026)이며 실제 고객 데이터가 아닙니다. 분석 코드: build/eda.py · 영상 생성: build/video.py
+</div></footer>
+
+<div class="tip" id="tip"></div>
+<script>
+const D = {"deep": {"shadow_q": [{"band": "하위 25%", "n": 150, "incidents": 2.01, "shadow": 0.25}, {"band": "25~50%", "n": 151, "incidents": 2.34, "shadow": 0.37}, {"band": "50~75%", "n": 149, "incidents": 3.07, "shadow": 0.45}, {"band": "상위 25%", "n": 150, "incidents": 3.65, "shadow": 0.57}], "quad": [{"ai": "AI 도입 높음", "mat": "성숙도 낮음", "n": 146, "incidents": 4.14, "intent": 0.75, "hot": 112}, {"ai": "AI 도입 높음", "mat": "성숙도 높음", "n": 154, "incidents": 3.44, "intent": 0.7, "hot": 104}, {"ai": "AI 도입 낮음", "mat": "성숙도 낮음", "n": 153, "incidents": 2.07, "intent": 0.45, "hot": 33}, {"ai": "AI 도입 낮음", "mat": "성숙도 높음", "n": 147, "incidents": 1.42, "intent": 0.39, "hot": 19}], "by_size": [{"size": "중소(<300명)", "n": 265, "budget_median": 26.0, "llm_apps": 7.55, "incidents": 2.52, "intent": 0.54, "hot": 106}, {"size": "중견(300~1,000명)", "n": 195, "budget_median": 96.0, "llm_apps": 13.38, "incidents": 2.98, "intent": 0.6, "hot": 92}, {"size": "대기업(1,000명+)", "n": 140, "budget_median": 1624.0, "llm_apps": 19.17, "incidents": 2.92, "intent": 0.6, "hot": 70}], "by_apps": [{"band": "0~4", "n": 67, "incidents": 1.33}, {"band": "5~9", "n": 169, "incidents": 2.4}, {"band": "10~14", "n": 173, "incidents": 2.75}, {"band": "15~24", "n": 157, "incidents": 3.48}, {"band": "25+", "n": 34, "incidents": 4.24}], "top": [{"id": "C0532", "industry": "금융", "size": "대기업(1,000명+)", "employees": 14581, "ai": 0.894, "incidents": 6, "budget": 4949.4, "intent": 0.942, "priority": 4662.0}, {"id": "C0356", "industry": "금융", "size": "대기업(1,000명+)", "employees": 14428, "ai": 0.812, "incidents": 4, "budget": 4842.9, "intent": 0.846, "priority": 4097.0}, {"id": "C0236", "industry": "금융", "size": "대기업(1,000명+)", "employees": 18495, "ai": 0.51, "incidents": 3, "budget": 5750.3, "intent": 0.623, "priority": 3582.0}, {"id": "C0595", "industry": "금융", "size": "대기업(1,000명+)", "employees": 17680, "ai": 0.799, "incidents": 8, "budget": 3538.8, "intent": 0.969, "priority": 3429.0}, {"id": "C0590", "industry": "IT·SaaS", "size": "대기업(1,000명+)", "employees": 14975, "ai": 0.99, "incidents": 7, "budget": 3597.5, "intent": 0.951, "priority": 3421.0}, {"id": "C0336", "industry": "유통", "size": "대기업(1,000명+)", "employees": 17723, "ai": 0.956, "incidents": 7, "budget": 3231.6, "intent": 0.95, "priority": 3070.0}, {"id": "C0328", "industry": "금융", "size": "대기업(1,000명+)", "employees": 14201, "ai": 0.65, "incidents": 3, "budget": 4090.1, "intent": 0.708, "priority": 2896.0}, {"id": "C0195", "industry": "제조", "size": "대기업(1,000명+)", "employees": 13491, "ai": 0.76, "incidents": 4, "budget": 4072.3, "intent": 0.711, "priority": 2895.0}, {"id": "C0479", "industry": "의료", "size": "대기업(1,000명+)", "employees": 16590, "ai": 0.653, "incidents": 4, "budget": 3742.4, "intent": 0.763, "priority": 2855.0}, {"id": "C0136", "industry": "공공", "size": "대기업(1,000명+)", "employees": 18186, "ai": 0.539, "incidents": 1, "budget": 5994.5, "intent": 0.435, "priority": 2608.0}], "hot_budget": 147982.0, "all_budget": 292189.0, "pareto": 0.86, "outlier_thr": 8.5, "outliers": 13, "ai_med": 0.6, "mat_med": 3.22}, "n": 600, "cols": ["ai_adoption", "llm_apps", "shadow_ai", "sec_maturity", "ai_incidents_12m", "sec_budget_mkrw", "buy_intent"], "summary": {"ai_adoption": {"mean": 0.6, "median": 0.6, "std": 0.21, "min": 0.02, "max": 0.99, "missing": 0}, "llm_apps": {"mean": 12.16, "median": 11.0, "std": 6.79, "min": 0.0, "max": 34.0, "missing": 0}, "shadow_ai": {"mean": 0.41, "median": 0.41, "std": 0.12, "min": 0.0, "max": 0.77, "missing": 0}, "sec_maturity": {"mean": 3.22, "median": 3.22, "std": 0.78, "min": 1.11, "max": 5.0, "missing": 0}, "ai_incidents_12m": {"mean": 2.77, "median": 2.0, "std": 2.23, "min": 0.0, "max": 15.0, "missing": 0}, "sec_budget_mkrw": {"mean": 486.98, "median": 66.4, "std": 1016.64, "min": 6.2, "max": 8001.5, "missing": 0}, "buy_intent": {"mean": 0.57, "median": 0.57, "std": 0.24, "min": 0.08, "max": 1.0, "missing": 0}}, "corr": [[1.0, 0.68, 0.18, -0.02, 0.58, 0.12, 0.78], [0.68, 1.0, 0.08, 0.21, 0.34, 0.44, 0.48], [0.18, 0.08, 1.0, -0.1, 0.3, -0.01, 0.24], [-0.02, 0.21, -0.1, 1.0, -0.2, 0.29, -0.17], [0.58, 0.34, 0.3, -0.2, 1.0, 0.01, 0.89], [0.12, 0.44, -0.01, 0.29, 0.01, 1.0, 0.05], [0.78, 0.48, 0.24, -0.17, 0.89, 0.05, 1.0]], "by_ind": [{"industry": "금융", "n": 98, "ai": 0.66, "incidents": 2.91, "maturity": 3.58, "intent": 0.67, "hot": 59}, {"industry": "의료", "n": 95, "ai": 0.53, "incidents": 2.21, "maturity": 3.51, "intent": 0.54, "hot": 38}, {"industry": "제조", "n": 103, "ai": 0.5, "incidents": 2.53, "maturity": 2.91, "intent": 0.48, "hot": 33}, {"industry": "유통", "n": 98, "ai": 0.62, "incidents": 2.98, "maturity": 2.8, "intent": 0.54, "hot": 34}, {"industry": "공공", "n": 94, "ai": 0.43, "incidents": 1.24, "maturity": 3.75, "intent": 0.41, "hot": 17}, {"industry": "IT·SaaS", "n": 112, "ai": 0.82, "incidents": 4.42, "maturity": 2.89, "intent": 0.76, "hot": 87}], "by_ai": [{"band": "0.0~0.2", "n": 19, "incidents": 0.16}, {"band": "0.2~0.4", "n": 77, "incidents": 1.04}, {"band": "0.4~0.6", "n": 204, "incidents": 2.17}, {"band": "0.6~0.8", "n": 195, "incidents": 3.11}, {"band": "0.8~1.0", "n": 105, "incidents": 5.02}], "hist_inc": [78, 122, 124, 88, 74, 44, 26, 21, 10, 8, 4, 0, 1], "scatter": [[0.99, 9, "IT·SaaS", 3.3], [0.665, 5, "금융", 2.9], [0.281, 0, "공공", 3.7], [0.745, 1, "IT·SaaS", 3.7], [0.99, 8, "IT·SaaS", 2.1], [0.99, 8, "IT·SaaS", 3.1], [0.293, 0, "공공", 4.2], [0.33, 2, "제조", 2.9], [0.99, 4, "IT·SaaS", 2.4], [0.267, 1, "의료", 3.1], [0.416, 4, "유통", 2.3], [0.835, 4, "의료", 3.7], [0.829, 7, "IT·SaaS", 2.9], [0.857, 5, "IT·SaaS", 3.6], [0.789, 7, "IT·SaaS", 1.8], [0.752, 7, "제조", 4.3], [0.44, 2, "의료", 2.1], [0.613, 3, "공공", 4.0], [0.707, 1, "의료", 3.7], [0.99, 10, "IT·SaaS", 2.5], [0.573, 3, "의료", 3.5], [0.352, 1, "공공", 3.3], [0.516, 3, "유통", 3.5], [0.935, 6, "IT·SaaS", 2.2], [0.192, 0, "제조", 2.9], [0.849, 4, "유통", 2.6], [0.763, 1, "공공", 4.1], [0.694, 2, "금융", 5.0], [0.226, 1, "의료", 3.4], [0.788, 7, "IT·SaaS", 2.1], [0.922, 6, "금융", 3.7], [0.579, 3, "제조", 2.9], [0.651, 6, "공공", 4.0], [0.455, 2, "금융", 3.1], [0.899, 6, "IT·SaaS", 3.2], [0.552, 0, "의료", 3.2], [0.64, 2, "유통", 4.4], [0.452, 2, "의료", 3.1], [0.375, 2, "의료", 3.7], [0.658, 3, "금융", 3.6], [0.611, 2, "제조", 2.9], [0.633, 1, "유통", 2.4], [0.57, 2, "제조", 3.4], [0.313, 1, "제조", 1.7], [0.582, 4, "공공", 3.9], [0.708, 2, "유통", 3.2], [0.462, 2, "공공", 3.4], [0.673, 8, "IT·SaaS", 3.1], [0.63, 5, "의료", 3.4], [0.99, 5, "금융", 3.8], [0.66, 0, "공공", 4.0], [0.761, 1, "유통", 3.0], [0.8, 4, "금융", 4.0], [0.102, 0, "제조", 2.6], [0.444, 0, "의료", 3.3], [0.817, 6, "유통", 4.0], [0.46, 2, "공공", 3.1], [0.856, 2, "의료", 4.4], [0.518, 1, "금융", 4.0], [0.495, 3, "제조", 1.8], [0.461, 3, "IT·SaaS", 1.7], [0.681, 5, "금융", 4.0], [0.64, 5, "제조", 3.4], [0.16, 1, "공공", 2.8], [0.226, 2, "유통", 2.7], [0.46, 4, "의료", 4.5], [0.576, 1, "금융", 3.6], [0.531, 4, "유통", 3.1], [0.678, 4, "제조", 4.2], [0.273, 0, "공공", 3.6], [0.408, 2, "제조", 3.5], [0.729, 6, "유통", 3.1], [0.581, 2, "공공", 3.6], [0.605, 2, "유통", 3.4], [0.891, 5, "IT·SaaS", 3.1], [0.231, 0, "금융", 3.0], [0.765, 3, "IT·SaaS", 3.2], [0.638, 3, "유통", 2.8], [0.573, 2, "유통", 2.3], [0.752, 5, "IT·SaaS", 3.9], [0.418, 2, "제조", 3.7], [0.345, 7, "제조", 3.1], [0.601, 5, "공공", 3.9], [0.499, 4, "제조", 3.0], [0.733, 5, "IT·SaaS", 2.1], [0.224, 0, "제조", 3.5], [0.909, 6, "IT·SaaS", 2.7], [0.677, 3, "IT·SaaS", 2.9], [0.74, 1, "유통", 2.6], [0.575, 3, "IT·SaaS", 3.2], [0.532, 1, "공공", 4.0], [0.362, 1, "IT·SaaS", 2.6], [0.71, 1, "유통", 2.9], [0.593, 3, "유통", 3.0], [0.99, 2, "IT·SaaS", 3.0], [0.876, 3, "금융", 2.8], [0.427, 3, "제조", 1.9], [0.707, 2, "의료", 3.9], [0.781, 1, "유통", 3.1], [0.866, 6, "IT·SaaS", 2.5], [0.085, 0, "공공", 3.8], [0.496, 2, "유통", 3.7], [0.692, 4, "제조", 2.0], [0.555, 2, "금융", 3.4], [0.845, 2, "의료", 3.4], [0.772, 1, "IT·SaaS", 2.4], [0.584, 3, "제조", 3.0], [0.481, 3, "의료", 3.8], [0.494, 1, "유통", 2.0], [0.99, 3, "IT·SaaS", 3.4], [0.709, 3, "유통", 2.5], [0.739, 3, "금융", 5.0], [0.398, 3, "의료", 4.2], [0.687, 4, "금융", 2.9], [0.704, 4, "제조", 2.7], [0.268, 0, "공공", 3.8], [0.662, 2, "IT·SaaS", 2.6], [0.572, 7, "의료", 3.5], [0.442, 0, "공공", 5.0], [0.646, 6, "제조", 2.8], [0.519, 2, "제조", 2.5], [0.284, 1, "공공", 3.2], [0.635, 2, "제조", 3.3], [0.49, 4, "제조", 2.3], [0.816, 7, "금융", 3.1], [0.584, 0, "공공", 4.5], [0.395, 3, "공공", 2.8], [0.226, 0, "공공", 3.2], [0.711, 5, "금융", 3.6], [0.635, 2, "금융", 4.3], [0.554, 6, "제조", 2.5], [0.464, 1, "금융", 2.4], [0.881, 7, "IT·SaaS", 3.4], [0.754, 1, "IT·SaaS", 1.8], [0.911, 4, "IT·SaaS", 2.6], [0.582, 1, "유통", 3.4], [0.539, 1, "공공", 3.9], [0.426, 1, "의료", 3.4], [0.45, 1, "공공", 2.8], [0.665, 3, "IT·SaaS", 2.4], [0.461, 0, "금융", 3.5], [0.276, 0, "제조", 3.5], [0.347, 2, "유통", 3.6], [0.699, 1, "IT·SaaS", 3.2], [0.553, 1, "의료", 1.9], [0.5, 3, "제조", 2.6], [0.663, 2, "의료", 4.1], [0.607, 4, "유통", 2.7], [0.543, 1, "IT·SaaS", 2.4], [0.278, 1, "의료", 2.7], [0.665, 7, "유통", 2.3], [0.648, 2, "제조", 2.3], [0.692, 4, "공공", 4.5], [0.362, 1, "의료", 4.1], [0.406, 4, "의료", 3.1], [0.731, 1, "유통", 3.0], [0.429, 3, "의료", 1.9], [0.598, 4, "금융", 2.6], [0.847, 9, "IT·SaaS", 1.5], [0.722, 5, "IT·SaaS", 2.1], [0.285, 0, "공공", 4.1], [0.568, 2, "유통", 3.5], [0.925, 9, "IT·SaaS", 1.9], [0.535, 2, "의료", 4.5], [0.775, 4, "금융", 3.5], [0.456, 2, "제조", 2.5], [0.622, 2, "의료", 3.5], [0.523, 5, "제조", 2.8], [0.568, 2, "공공", 3.3], [0.677, 3, "IT·SaaS", 2.8], [0.63, 0, "의료", 4.0], [0.466, 0, "공공", 2.9], [0.272, 1, "제조", 2.1], [0.531, 2, "의료", 4.2], [0.99, 4, "유통", 2.4], [0.243, 3, "제조", 3.0], [0.576, 4, "의료", 4.2], [0.498, 2, "의료", 2.9], [0.819, 2, "유통", 3.3], [0.02, 0, "제조", 3.1], [0.748, 3, "금융", 3.4], [0.241, 3, "제조", 2.2], [0.589, 1, "공공", 4.2], [0.419, 2, "의료", 3.3], [0.539, 7, "공공", 1.9], [0.444, 1, "유통", 2.3], [0.579, 2, "유통", 2.9], [0.595, 1, "금융", 4.1], [0.555, 1, "제조", 4.2], [0.747, 1, "유통", 2.5], [0.793, 5, "의료", 4.8], [0.95, 0, "IT·SaaS", 1.6], [0.198, 0, "의료", 3.8], [0.507, 2, "의료", 3.8], [0.653, 2, "의료", 4.0], [0.76, 4, "제조", 4.1], [0.533, 2, "제조", 3.8], [0.826, 6, "유통", 2.5], [0.627, 2, "제조", 3.2], [0.546, 7, "제조", 2.9], [0.514, 1, "공공", 3.2], [0.598, 3, "의료", 3.7], [0.771, 5, "IT·SaaS", 3.4], [0.793, 4, "IT·SaaS", 2.3], [0.555, 1, "공공", 4.4], [0.366, 1, "공공", 3.3], [0.804, 2, "IT·SaaS", 4.6], [0.453, 1, "공공", 3.9], [0.742, 2, "금융", 3.6], [0.529, 2, "의료", 3.9], [0.52, 3, "의료", 4.2], [0.686, 4, "IT·SaaS", 2.6], [0.599, 1, "금융", 3.3], [0.55, 1, "제조", 3.6], [0.737, 6, "금융", 3.6], [0.095, 1, "공공", 2.3], [0.576, 1, "의료", 4.1], [0.352, 1, "공공", 3.3], [0.826, 5, "IT·SaaS", 4.2], [0.247, 1, "금융", 3.5], [0.497, 3, "의료", 2.8], [0.349, 2, "제조", 2.7], [0.507, 2, "제조", 3.1], [0.842, 5, "IT·SaaS", 2.4], [0.313, 1, "제조", 3.4], [0.525, 2, "유통", 3.3], [0.515, 2, "제조", 2.1], [0.542, 4, "유통", 2.8], [0.549, 3, "유통", 2.6], [0.971, 5, "IT·SaaS", 2.1], [0.99, 2, "IT·SaaS", 4.1], [0.614, 7, "제조", 3.4], [0.466, 4, "금융", 3.8], [0.762, 5, "의료", 2.8], [0.522, 3, "제조", 2.3], [0.493, 4, "금융", 2.1], [0.51, 3, "금융", 3.9], [0.457, 5, "유통", 2.5], [0.951, 3, "금융", 3.4], [0.675, 3, "의료", 3.8], [0.315, 0, "공공", 3.2], [0.99, 6, "IT·SaaS", 2.7], [0.353, 1, "의료", 3.0], [0.506, 0, "제조", 2.0], [0.433, 3, "공공", 4.6], [0.641, 4, "제조", 2.2], [0.716, 0, "유통", 3.0], [0.369, 0, "제조", 1.4], [0.407, 4, "의료", 3.7], [0.725, 6, "금융", 5.0], [0.625, 3, "제조", 3.4], [0.73, 5, "유통", 2.4], [0.24, 0, "제조", 3.4], [0.287, 1, "제조", 2.9], [0.196, 0, "공공", 4.2], [0.662, 2, "의료", 3.1], [0.51, 4, "공공", 4.2], [0.663, 3, "의료", 4.0], [0.097, 0, "제조", 2.8], [0.823, 3, "금융", 4.6], [0.99, 4, "IT·SaaS", 3.4], [0.533, 1, "유통", 2.5], [0.574, 2, "금융", 3.0], [0.506, 1, "의료", 4.0], [0.763, 2, "금융", 3.1], [0.62, 3, "금융", 2.7], [0.689, 3, "금융", 4.8], [0.373, 0, "제조", 3.8], [0.485, 0, "유통", 4.2], [0.715, 3, "IT·SaaS", 3.0], [0.786, 6, "IT·SaaS", 3.0], [0.77, 4, "금융", 2.8], [0.947, 3, "IT·SaaS", 3.8], [0.617, 2, "금융", 2.9], [0.518, 3, "금융", 3.4], [0.656, 4, "의료", 2.7], [0.705, 4, "유통", 2.4], [0.505, 8, "IT·SaaS", 1.7], [0.738, 4, "금융", 2.2], [0.81, 5, "유통", 2.1], [0.982, 15, "IT·SaaS", 3.0], [0.855, 3, "금융", 3.6], [0.465, 4, "IT·SaaS", 3.1], [0.822, 4, "유통", 3.9], [0.357, 4, "의료", 3.7], [0.74, 4, "IT·SaaS", 2.4], [0.502, 1, "제조", 2.3], [0.323, 0, "의료", 4.7], [0.678, 4, "유통", 3.1], [0.99, 3, "IT·SaaS", 2.3], [0.626, 1, "금융", 3.6], [0.78, 1, "금융", 4.4], [0.892, 5, "IT·SaaS", 2.7], [0.588, 2, "제조", 2.8], [0.479, 2, "유통", 2.1], [0.873, 5, "금융", 3.4], [0.608, 0, "제조", 2.6], [0.391, 2, "제조", 3.1], [0.645, 1, "IT·SaaS", 3.1], [0.428, 1, "제조", 2.2], [0.268, 2, "의료", 3.1], [0.905, 2, "IT·SaaS", 3.4], [0.658, 1, "제조", 3.4], [0.798, 7, "IT·SaaS", 2.5], [0.891, 6, "금융", 3.9], [0.343, 2, "유통", 2.0], [0.601, 5, "제조", 2.1], [0.739, 4, "IT·SaaS", 2.3], [0.611, 3, "의료", 3.4], [0.484, 4, "의료", 2.9], [0.553, 1, "금융", 3.1], [0.748, 7, "유통", 2.5], [0.529, 2, "의료", 3.3], [0.503, 2, "유통", 3.1], [0.94, 5, "제조", 4.3], [0.613, 2, "유통", 1.9], [0.735, 1, "의료", 3.3], [0.511, 0, "공공", 4.8], [0.328, 0, "제조", 1.7], [0.693, 2, "유통", 3.6], [0.276, 0, "공공", 4.4], [0.091, 0, "공공", 3.5], [0.668, 2, "의료", 2.8], [0.81, 6, "유통", 2.8], [0.686, 2, "유통", 3.0], [0.804, 5, "제조", 3.2], [0.815, 5, "IT·SaaS", 2.8], [0.88, 10, "IT·SaaS", 3.4], [0.65, 3, "금융", 3.7], [0.844, 4, "IT·SaaS", 3.8], [0.658, 1, "유통", 3.0], [0.913, 3, "금융", 4.0], [0.58, 3, "제조", 3.3], [0.691, 6, "의료", 2.9], [0.502, 3, "유통", 2.9], [0.458, 0, "IT·SaaS", 2.6], [0.956, 7, "유통", 2.6], [0.364, 0, "공공", 4.6], [0.339, 0, "공공", 5.0], [0.668, 2, "유통", 3.6], [0.624, 4, "금융", 3.3], [0.342, 1, "공공", 4.9], [0.708, 2, "금융", 4.5], [0.152, 0, "공공", 4.0], [0.286, 1, "제조", 2.8], [0.445, 1, "유통", 4.4], [0.99, 7, "IT·SaaS", 3.6], [0.183, 0, "공공", 2.6], [0.346, 2, "의료", 3.4], [0.52, 1, "의료", 5.0], [0.659, 2, "금융", 2.6], [0.679, 2, "IT·SaaS", 3.3], [0.69, 1, "금융", 4.5], [0.576, 3, "제조", 2.0], [0.698, 2, "의료", 3.5], [0.874, 4, "IT·SaaS", 4.2], [0.812, 4, "금융", 3.8], [0.485, 1, "공공", 4.2], [0.766, 3, "의료", 3.4], [0.149, 0, "의료", 3.5], [0.86, 10, "IT·SaaS", 2.8], [0.487, 1, "공공", 3.9], [0.422, 1, "의료", 3.2], [0.423, 4, "제조", 3.9], [0.801, 2, "유통", 2.2], [0.402, 0, "유통", 1.2], [0.789, 3, "IT·SaaS", 3.7], [0.81, 2, "금융", 3.5], [0.53, 4, "제조", 3.1], [0.609, 1, "공공", 3.8], [0.558, 2, "제조", 2.5], [0.436, 1, "의료", 4.7], [0.516, 1, "금융", 3.2], [0.805, 8, "금융", 3.4], [0.545, 2, "유통", 1.8], [0.99, 8, "IT·SaaS", 4.4], [0.539, 4, "의료", 2.4], [0.567, 2, "공공", 3.4], [0.99, 0, "IT·SaaS", 4.2], [0.689, 7, "공공", 3.5], [0.596, 1, "의료", 4.6], [0.489, 2, "제조", 2.5], [0.561, 1, "금융", 2.9], [0.734, 2, "의료", 2.5], [0.735, 9, "유통", 2.3], [0.641, 2, "공공", 4.3], [0.842, 2, "IT·SaaS", 4.5], [0.67, 2, "의료", 4.4], [0.714, 2, "금융", 3.4], [0.669, 2, "의료", 5.0], [0.445, 2, "공공", 4.1], [0.336, 0, "공공", 3.9], [0.391, 0, "공공", 4.2], [0.683, 3, "의료", 3.9], [0.965, 5, "IT·SaaS", 1.4], [0.99, 4, "IT·SaaS", 3.9], [0.804, 6, "IT·SaaS", 3.5], [0.806, 5, "IT·SaaS", 2.9], [0.573, 2, "유통", 2.4], [0.99, 4, "IT·SaaS", 3.4], [0.674, 2, "유통", 3.1], [0.99, 7, "IT·SaaS", 2.7], [0.691, 0, "공공", 3.9], [0.341, 0, "공공", 4.6], [0.528, 2, "금융", 3.2], [0.667, 6, "유통", 1.4], [0.567, 2, "의료", 3.0], [0.621, 0, "금융", 4.4], [0.732, 2, "유통", 3.4], [0.486, 1, "금융", 2.5], [0.739, 1, "IT·SaaS", 4.1], [0.517, 2, "금융", 2.7], [0.775, 4, "IT·SaaS", 3.3], [0.448, 1, "공공", 3.1], [0.544, 2, "제조", 2.7], [0.585, 1, "금융", 3.6], [0.561, 4, "제조", 2.1], [0.796, 2, "금융", 3.1], [0.487, 4, "유통", 2.0], [0.968, 3, "IT·SaaS", 2.6], [0.643, 1, "금융", 3.9], [0.686, 5, "유통", 2.4], [0.775, 9, "IT·SaaS", 2.5], [0.572, 2, "제조", 3.1], [0.131, 0, "의료", 3.8], [0.411, 1, "제조", 3.0], [0.711, 2, "IT·SaaS", 4.6], [0.37, 1, "의료", 3.4], [0.764, 5, "유통", 1.5], [0.82, 10, "제조", 3.4], [0.211, 1, "공공", 2.1], [0.323, 1, "유통", 3.2], [0.585, 1, "공공", 3.4], [0.439, 2, "의료", 2.6], [0.923, 5, "IT·SaaS", 3.9], [0.497, 1, "제조", 2.8], [0.952, 3, "제조", 3.5], [0.762, 3, "IT·SaaS", 3.5], [0.471, 2, "금융", 3.7], [0.903, 8, "IT·SaaS", 2.2], [0.768, 5, "금융", 4.2], [0.228, 0, "금융", 3.2], [0.391, 0, "공공", 2.8], [0.499, 2, "유통", 2.4], [0.417, 1, "금융", 3.7], [0.135, 0, "공공", 3.2], [0.404, 1, "제조", 3.1], [0.367, 3, "제조", 3.0], [0.55, 3, "유통", 2.1], [0.6, 5, "IT·SaaS", 3.1], [0.165, 1, "공공", 2.5], [0.909, 6, "IT·SaaS", 2.8], [0.607, 3, "유통", 1.2], [0.02, 0, "의료", 2.8], [0.422, 0, "공공", 4.1], [0.466, 3, "공공", 4.1], [0.927, 5, "유통", 4.3], [0.485, 1, "공공", 4.6], [0.684, 4, "금융", 4.2], [0.909, 3, "제조", 3.7], [0.99, 5, "IT·SaaS", 3.4], [0.728, 4, "제조", 3.3], [0.764, 3, "금융", 3.6], [0.764, 2, "IT·SaaS", 2.0], [0.632, 3, "공공", 2.9], [0.788, 2, "금융", 4.5], [0.867, 1, "IT·SaaS", 2.9], [0.53, 7, "유통", 1.3], [0.907, 1, "금융", 3.4], [0.892, 4, "IT·SaaS", 3.7], [0.573, 2, "IT·SaaS", 1.1], [0.69, 3, "공공", 3.1], [0.48, 3, "유통", 2.2], [0.824, 2, "유통", 2.7], [0.485, 2, "유통", 3.0], [0.521, 3, "의료", 3.5], [0.598, 2, "금융", 3.8], [0.634, 3, "유통", 2.9], [0.528, 1, "금융", 4.2], [0.653, 4, "의료", 4.1], [0.512, 1, "금융", 4.3], [0.672, 4, "금융", 3.6], [0.714, 1, "금융", 4.8], [0.943, 6, "IT·SaaS", 2.4], [0.419, 1, "공공", 3.7], [0.308, 1, "의료", 3.8], [0.941, 7, "IT·SaaS", 2.0], [0.641, 5, "의료", 3.0], [0.48, 3, "의료", 3.7], [0.58, 2, "금융", 4.4], [0.753, 2, "의료", 4.1], [0.621, 5, "금융", 2.1], [0.582, 2, "제조", 3.6], [0.522, 1, "공공", 3.2], [0.61, 1, "제조", 3.0], [0.438, 3, "금융", 3.8], [0.471, 2, "제조", 3.4], [0.509, 2, "의료", 2.7], [0.647, 2, "금융", 2.5], [0.485, 1, "유통", 2.2], [0.47, 1, "유통", 3.6], [0.249, 0, "공공", 4.3], [0.553, 3, "제조", 2.1], [0.923, 9, "유통", 3.2], [0.698, 3, "금융", 2.4], [0.314, 3, "유통", 2.8], [0.515, 2, "유통", 3.5], [0.394, 1, "제조", 3.6], [0.658, 0, "유통", 3.6], [0.739, 8, "금융", 2.9], [0.516, 2, "금융", 4.7], [0.789, 5, "금융", 3.7], [0.531, 1, "공공", 4.2], [0.909, 5, "금융", 4.1], [0.945, 4, "IT·SaaS", 2.6], [0.795, 4, "의료", 3.9], [0.736, 5, "유통", 2.6], [0.774, 2, "IT·SaaS", 3.2], [0.99, 9, "IT·SaaS", 1.5], [0.613, 3, "유통", 2.9], [0.368, 0, "공공", 4.9], [0.731, 3, "IT·SaaS", 3.2], [0.574, 4, "공공", 4.7], [0.694, 4, "제조", 2.9], [0.345, 3, "의료", 2.7], [0.472, 8, "제조", 4.0], [0.861, 6, "유통", 2.7], [0.936, 2, "IT·SaaS", 2.9], [0.529, 0, "제조", 2.2], [0.568, 3, "제조", 1.7], [0.502, 1, "의료", 2.7], [0.728, 0, "의료", 3.5], [0.894, 6, "금융", 3.8], [0.603, 4, "제조", 3.1], [0.511, 4, "유통", 2.3], [0.708, 1, "금융", 3.9], [0.384, 1, "공공", 3.4], [0.355, 0, "공공", 4.0], [0.403, 1, "유통", 2.2], [0.561, 4, "제조", 2.1], [0.477, 0, "공공", 4.7], [0.64, 1, "유통", 1.9], [0.442, 0, "의료", 3.8], [0.229, 0, "공공", 3.2], [0.604, 0, "제조", 3.5], [0.418, 0, "유통", 3.1], [0.44, 2, "공공", 3.7], [0.708, 1, "공공", 3.8], [0.728, 1, "금융", 4.5], [0.702, 3, "유통", 4.1], [0.59, 4, "의료", 2.9], [0.99, 4, "IT·SaaS", 2.8], [0.821, 5, "금융", 4.2], [0.499, 4, "의료", 3.8], [0.49, 1, "의료", 3.3], [0.738, 1, "의료", 3.3], [0.492, 1, "공공", 2.8], [0.671, 3, "공공", 4.3], [0.68, 4, "의료", 2.6], [0.527, 1, "제조", 3.6], [0.207, 0, "공공", 4.3], [0.722, 4, "유통", 2.6], [0.246, 0, "공공", 4.2], [0.402, 2, "금융", 3.1], [0.716, 3, "IT·SaaS", 3.1], [0.925, 4, "금융", 3.9], [0.871, 1, "IT·SaaS", 3.2], [0.524, 2, "공공", 3.1], [0.575, 2, "금융", 3.3], [0.647, 6, "금융", 2.9], [0.441, 1, "유통", 2.7], [0.293, 2, "제조", 2.4], [0.29, 0, "제조", 3.0], [0.875, 6, "IT·SaaS", 2.1], [0.99, 9, "유통", 3.8], [0.722, 3, "유통", 3.5], [0.648, 1, "IT·SaaS", 2.5], [0.085, 0, "의료", 2.6], [0.48, 0, "공공", 3.8], [0.825, 3, "IT·SaaS", 1.6], [0.247, 1, "제조", 1.8], [0.53, 2, "제조", 2.9], [0.188, 0, "공공", 3.3], [0.657, 1, "제조", 3.9], [0.531, 2, "IT·SaaS", 2.8], [0.392, 0, "의료", 4.3], [0.399, 3, "유통", 2.8], [0.616, 1, "IT·SaaS", 3.0], [0.664, 0, "공공", 4.2], [0.747, 3, "IT·SaaS", 2.8], [0.99, 7, "IT·SaaS", 3.8], [0.4, 0, "공공", 3.4], [0.538, 3, "공공", 3.4], [0.468, 4, "제조", 3.0], [0.607, 5, "공공", 4.2], [0.799, 8, "금융", 3.9], [0.65, 1, "IT·SaaS", 2.6], [0.377, 0, "공공", 4.1], [0.772, 3, "제조", 3.8], [0.393, 1, "제조", 1.8]], "seg": [{"industry": "금융", "size": "중소(<300명)", "n": 44, "hot": 24, "budget": 32.0}, {"industry": "금융", "size": "중견(300~1,000명)", "n": 34, "hot": 20, "budget": 115.0}, {"industry": "금융", "size": "대기업(1,000명+)", "n": 20, "hot": 15, "budget": 2523.0}, {"industry": "의료", "size": "중소(<300명)", "n": 38, "hot": 13, "budget": 30.0}, {"industry": "의료", "size": "중견(300~1,000명)", "n": 33, "hot": 13, "budget": 126.0}, {"industry": "의료", "size": "대기업(1,000명+)", "n": 24, "hot": 12, "budget": 1896.0}, {"industry": "제조", "size": "중소(<300명)", "n": 53, "hot": 14, "budget": 25.0}, {"industry": "제조", "size": "중견(300~1,000명)", "n": 30, "hot": 11, "budget": 101.0}, {"industry": "제조", "size": "대기업(1,000명+)", "n": 20, "hot": 8, "budget": 1945.0}, {"industry": "유통", "size": "중소(<300명)", "n": 36, "hot": 12, "budget": 25.0}, {"industry": "유통", "size": "중견(300~1,000명)", "n": 36, "hot": 11, "budget": 85.0}, {"industry": "유통", "size": "대기업(1,000명+)", "n": 26, "hot": 11, "budget": 1426.0}, {"industry": "공공", "size": "중소(<300명)", "n": 42, "hot": 5, "budget": 40.0}, {"industry": "공공", "size": "중견(300~1,000명)", "n": 24, "hot": 6, "budget": 125.0}, {"industry": "공공", "size": "대기업(1,000명+)", "n": 28, "hot": 6, "budget": 2260.0}, {"industry": "IT·SaaS", "size": "중소(<300명)", "n": 52, "hot": 38, "budget": 23.0}, {"industry": "IT·SaaS", "size": "중견(300~1,000명)", "n": 38, "hot": 31, "budget": 102.0}, {"industry": "IT·SaaS", "size": "대기업(1,000명+)", "n": 22, "hot": 18, "budget": 1286.0}], "slope": [6.3, -1.02], "r_ai_inc": 0.58, "r_mat_inc": -0.2, "hot_total": 268};
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const svg = (id, w, h) => { const s = el("svg", { viewBox: `0 0 ${w} ${h}`, width: "100%", role: "img" }); document.getElementById(id).appendChild(s); return s; };
+const tip = document.getElementById("tip");
+const showTip = (e, html) => { tip.innerHTML = html; tip.style.display = "block"; tip.style.left = (e.clientX + 12) + "px"; tip.style.top = (e.clientY + 12) + "px"; };
+const hideTip = () => tip.style.display = "none";
+const LBL = { ai_adoption: "AI 도입 지수", llm_apps: "LLM 앱 수", shadow_ai: "섀도 AI 비율", sec_maturity: "보안 성숙도", ai_incidents_12m: "연간 AI 사고", sec_budget_mkrw: "보안 예산(백만원)", buy_intent: "구매 의향" };
+const IND_COL = { "금융": "--accent", "의료": "--cyan", "제조": "--muted", "유통": "--accent2", "공공": "--red", "IT·SaaS": "--ink" };
+
+function render() {
+  ["cHist", "cBand", "cScatter", "cCorr", "cSeg", "lgScatter"].forEach(i => document.getElementById(i).innerHTML = "");
+  const A = css("--accent"), C = css("--cyan"), M = css("--muted"), I = css("--ink"), SF = css("--surface");
+  const T = (s, x, y, txt, cls = "ax", anchor = "middle") => { const t = el("text", { x, y, "text-anchor": anchor, class: cls }, s); t.textContent = txt; return t; };
+  const hov = (node, html) => { node.addEventListener("mousemove", e => showTip(e, html)); node.addEventListener("mouseleave", hideTip); };
+
+  // 표 1: 기술 통계
+  let h = "<tr><th>항목</th><th>평균</th><th>중앙값</th><th>표준편차</th><th>최소</th><th>최대</th></tr>";
+  for (const c of D.cols) { const s = D.summary[c]; h += `<tr><td>${LBL[c]}</td><td><b>${s.mean}</b></td><td>${s.median}</td><td>${s.std}</td><td>${s.min}</td><td>${s.max}</td></tr>`; }
+  document.getElementById("tSummary").innerHTML = h;
+
+  // 그래프 2: 사고 건수 분포 (막대 + 값 라벨 + 평균선)
+  { const W = 520, Hh = 320, x0 = 20, base = 250, top = 40, s = svg("cHist", W, Hh), n = D.hist_inc.length, bw = (W - 40) / n, mx = Math.max(...D.hist_inc);
+    el("line", { x1: x0, y1: base, x2: W - 20, y2: base, class: "grid" }, s);
+    D.hist_inc.forEach((v, i) => { const hh = v / mx * (base - top), x = x0 + i * bw;
+      const r = el("rect", { x: x + 3, y: base - hh, width: bw - 6, height: Math.max(hh, 1), fill: A, rx: 4, "fill-opacity": i >= 1 && i <= 3 ? 1 : .45 }, s);
+      hov(r, `사고 <b>${i}${i == 12 ? "건 이상" : "건"}</b>: ${v}개사 (${(v / D.n * 100).toFixed(0)}%)`);
+      if (v) T(s, x + bw / 2, base - hh - 7, v, "v");
+      T(s, x + bw / 2, base + 20, i == 12 ? "12+" : i); });
+    const mean = D.summary.ai_incidents_12m.mean, mxp = x0 + (mean + .5) * bw;
+    el("line", { x1: mxp, y1: top - 14, x2: mxp, y2: base, stroke: I, "stroke-width": 1.5, "stroke-dasharray": "4 5", "stroke-opacity": .55 }, s);
+    T(s, mxp + 8, top - 6, `평균 ${mean}건`, "v", "start");
+    T(s, W / 2, base + 46, "연간 AI 보안 사고 건수 (막대 위 숫자 = 기업 수)", "ttl");
+    const share = D.hist_inc.slice(1, 4).reduce((a, b) => a + b, 0) / D.n * 100;
+    T(s, W - 20, top + 30, `1~3건이 전체의 ${share.toFixed(0)}%`, "ttl", "end"); }
+
+  // 그래프 3: AI 도입 수준별 평균 사고 (막대)
+  { const W = 520, Hh = 320, base = 236, top = 48, s = svg("cBand", W, Hh), n = D.by_ai.length, bw = (W - 40) / n, mx = Math.max(...D.by_ai.map(b => b.incidents));
+    const names = ["매우 낮음", "낮음", "보통", "높음", "매우 높음"];
+    el("line", { x1: 20, y1: base, x2: W - 20, y2: base, class: "grid" }, s);
+    D.by_ai.forEach((b, i) => { const hh = b.incidents / mx * (base - top), x = 20 + i * bw;
+      const r = el("rect", { x: x + 12, y: base - hh, width: bw - 24, height: Math.max(hh, 2), fill: A, rx: 5, "fill-opacity": .3 + .7 * (i / (n - 1)) }, s);
+      hov(r, `AI 도입 ${names[i]} (${b.band})<br>평균 사고 <b>${b.incidents}건</b> · ${b.n}개사`);
+      const t = T(s, x + bw / 2, base - hh - 9, b.incidents + "건", "v"); t.style.fontSize = "17px";
+      T(s, x + bw / 2, base + 22, names[i], "v"); T(s, x + bw / 2, base + 40, `지수 ${b.band}`); T(s, x + bw / 2, base + 57, `${b.n}개사`); });
+    const ratio = Math.round(D.by_ai[n - 1].incidents / D.by_ai[0].incidents);
+    T(s, 24, 26, `가장 낮은 단계 → 가장 높은 단계: 약 ${ratio}배`, "v", "start"); }
+
+  // 그래프 4: 산점도 (회색 점 + 구간 평균선)
+  { const W = 1000, Hh = 440, L = 70, R = 30, top = 24, base = 370, s = svg("cScatter", W, Hh), mxY = Math.max(...D.scatter.map(p => p[1]));
+    const X = v => L + v * (W - L - R), Y = v => base - v / mxY * (base - top);
+    for (let g = 0; g <= mxY; g += 4) { el("line", { x1: L, y1: Y(g), x2: W - R, y2: Y(g), class: "grid" }, s); T(s, L - 10, Y(g) + 4, g + "건", "ax", "end"); }
+    for (let g = 0; g <= 5; g++) T(s, X(g / 5), base + 22, (g / 5).toFixed(1));
+    T(s, X(.5), base + 48, "AI 도입 지수  (왼쪽: 거의 안 씀  →  오른쪽: 많이 씀)", "ttl");
+    const yt = T(s, 18, (top + base) / 2, "연간 사고 건수", "ttl"); yt.setAttribute("transform", `rotate(-90 18 ${(top + base) / 2})`);
+    D.scatter.forEach((p, i) => { const c = el("circle", { cx: X(p[0]), cy: Y(p[1]) + ((i * 7919) % 11 - 5), r: 4, fill: M, "fill-opacity": .28 }, s);
+      hov(c, `<b>${p[2]}</b> 기업<br>AI 도입 ${p[0]} · 사고 ${p[1]}건 · 보안 성숙도 ${p[3]}`); });
+    const pts = D.by_ai.map((b, i) => [X(.1 + i * .2), Y(b.incidents), b]);
+    el("polyline", { points: pts.map(p => p[0] + "," + p[1]).join(" "), fill: "none", stroke: A, "stroke-width": 4, "stroke-linejoin": "round", "stroke-linecap": "round" }, s);
+    pts.forEach(p => { el("circle", { cx: p[0], cy: p[1], r: 9, fill: A, stroke: SF, "stroke-width": 3 }, s);
+      const bg = el("rect", { x: p[0] - 34, y: p[1] - 44, width: 68, height: 26, rx: 13, fill: SF, stroke: A, "stroke-width": 1.5 }, s);
+      const t = T(s, p[0], p[1] - 26, p[2].incidents + "건", "v"); hov(bg, `구간 ${p[2].band} 평균 <b>${p[2].incidents}건</b> (${p[2].n}개사)`); });
+    document.getElementById("lgScatter").innerHTML = `<span><i style="background:${M};opacity:.5"></i>기업 1곳</span><span><i class="ln" style="background:${A}"></i>구간별 평균 사고 건수</span>`;
+    document.getElementById("slopeTxt").textContent = (D.slope[0] / 10).toFixed(2); }
+
+  // 그래프 5: 사고와의 관계 (순위 막대)
+  { const k = D.cols.indexOf("ai_incidents_12m");
+    const rows = D.cols.map((c, i) => ({ c, v: D.corr[k][i] })).filter(r => r.c != "ai_incidents_12m" && r.c != "buy_intent").sort((a, b) => b.v - a.v);
+    const W = 520, rh = 44, top = 34, s = svg("cCorr", W, top + rows.length * rh + 34), zero = 290, unit = 190;
+    const word = v => Math.abs(v) >= .5 ? "강함" : Math.abs(v) >= .3 ? "보통" : Math.abs(v) >= .1 ? "약함" : "거의 없음";
+    T(s, zero + 6, 18, "사고가 많아짐 →", "ttl", "start"); T(s, zero - 6, 18, "← 사고가 적어짐", "ttl", "end");
+    el("line", { x1: zero, y1: top - 6, x2: zero, y2: top + rows.length * rh, stroke: M, "stroke-width": 1.5 }, s);
+    rows.forEach((r, i) => { const y = top + i * rh, w = Math.max(Math.abs(r.v) * unit, 2), pos = r.v >= 0;
+      T(s, 150, y + 26, LBL[r.c], "v", "end");
+      const b = el("rect", { x: pos ? zero + 1 : zero - 1 - w, y: y + 8, width: w, height: 26, rx: 5, fill: pos ? A : C }, s);
+      hov(b, `${LBL[r.c]}와 사고 건수의 상관계수 <b>${r.v.toFixed(2)}</b> (${word(r.v)})`);
+      T(s, pos ? zero + w + 8 : zero + 8, y + 26, `${r.v > 0 ? "+" : ""}${r.v.toFixed(2)} · ${word(r.v)}`, "v", "start"); });
+    T(s, W / 2, top + rows.length * rh + 22, "숫자 = 상관계수 (−1 ~ +1, 0에 가까우면 관계 없음)", "ttl"); }
+
+  // 표 6: 업종
+  { const mxH = Math.max(...D.by_ind.map(r => r.hot));
+    let h = "<tr><th>업종</th><th>기업 수</th><th>AI 도입</th><th>평균 사고</th><th>살 가능성 높은 기업</th></tr>";
+    [...D.by_ind].sort((a, b) => b.hot - a.hot).forEach(r => h += `<tr><td><b>${r.industry}</b></td><td>${r.n}</td><td>${r.ai}</td><td>${r.incidents}건</td><td><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><div class="bar" style="width:90px"><i style="width:${r.hot / mxH * 100}%"></i></div><b style="min-width:42px">${r.hot}곳</b></div></td></tr>`);
+    document.getElementById("tInd").innerHTML = h; }
+
+  // 그래프 7: 업종 × 규모 지도
+  { const inds = [...D.by_ind].sort((a, b) => b.hot - a.hot).map(r => r.industry), sizes = [...new Set(D.seg.map(s => s.size))];
+    const cw = 200, ch = 62, L = 110, s = svg("cSeg", L + sizes.length * cw, 44 + inds.length * ch), mx = Math.max(...D.seg.map(x => x.hot));
+    sizes.forEach((z, j) => T(s, L + j * cw + cw / 2, 24, z, "v"));
+    inds.forEach((ind, i) => { T(s, L - 14, 40 + i * ch + ch / 2 + 3, ind, "v", "end");
+      sizes.forEach((z, j) => { const c = D.seg.find(x => x.industry == ind && x.size == z); if (!c) return;
+        const f = c.hot / mx, r = el("rect", { x: L + j * cw, y: 36 + i * ch, width: cw - 6, height: ch - 6, fill: A, "fill-opacity": .1 + f * .9, rx: 8 }, s);
+        hov(r, `<b>${ind} · ${z}</b><br>살 가능성 높은 기업 ${c.hot}곳 / 전체 ${c.n}곳 (${Math.round(c.hot / c.n * 100)}%)<br>평균 보안 예산 ${Math.round(c.budget).toLocaleString()}백만원`);
+        const dark = f > .5, t = T(s, L + j * cw + cw / 2 - 3, 36 + i * ch + 30, c.hot + "곳", "v"); t.style.fontSize = "19px"; t.style.fill = dark ? "#1a1206" : I; t.style.pointerEvents = "none";
+        const t2 = T(s, L + j * cw + cw / 2 - 3, 36 + i * ch + 48, `전체 ${c.n}곳 중`, "ax"); t2.style.fill = dark ? "#1a1206" : M; t2.style.pointerEvents = "none"; }); }); }
+}
+function renderDeep() {
+  const d = D.deep, A = css("--accent"), I = css("--ink"), L = css("--line");
+  ["cShadow", "cApps", "cPareto"].forEach(i => document.getElementById(i).innerHTML = "");
+  // 4분면
+  const mxI = Math.max(...d.quad.map(q => q.incidents));
+  document.getElementById("cQuad").innerHTML = d.quad.map(q => `<div class="q ${q.incidents == mxI ? "hot" : ""}"><div style="font-weight:700">${q.ai}<br>보안 ${q.mat}</div><div class="big ${q.incidents == mxI ? "gt" : ""}">${q.incidents}건</div><div class="bar" style="margin:6px 0 8px"><i style="width:${q.incidents / mxI * 100}%"></i></div><div class="note">${q.n}개사 · 살 가능성 높은 기업 ${q.hot}곳</div></div>`).join("");
+  const hbar = (id, rows, unit) => { const mx = Math.max(...rows.map(r => r.incidents)), rh = 46, s = svg(id, 520, rows.length * rh + 8);
+    rows.forEach((r, i) => { const w = r.incidents / mx * 250, y = i * rh;
+      const a = el("text", { x: 118, y: y + 28, "text-anchor": "end", class: "v" }, s); a.textContent = r.band + (unit || "");
+      const b = el("rect", { x: 130, y: y + 9, width: w, height: 28, rx: 6, fill: A, "fill-opacity": .3 + .7 * (i / (rows.length - 1)) }, s);
+      b.addEventListener("mousemove", e => showTip(e, `${r.band}${unit || ""}: 평균 <b>${r.incidents}건</b> · ${r.n}개사`)); b.addEventListener("mouseleave", hideTip);
+      const v = el("text", { x: 140 + w, y: y + 29, class: "v" }, s); v.textContent = r.incidents + "건"; v.style.fontSize = "16px";
+      const n = el("text", { x: 512, y: y + 28, "text-anchor": "end", class: "ax" }, s); n.textContent = r.n + "개사"; }); };
+  hbar("cShadow", d.shadow_q); hbar("cApps", d.by_apps, "개");
+  // 규모 표
+  let h = "<tr><th>규모</th><th>기업 수</th><th>보안 예산</th><th>LLM 앱</th><th>사고</th><th>구매 의향</th><th>고의향</th></tr>";
+  d.by_size.forEach(r => h += `<tr><td>${r.size}</td><td>${r.n}</td><td>${r.budget_median.toLocaleString()}</td><td>${r.llm_apps}</td><td>${r.incidents}</td><td>${r.intent}</td><td><b>${r.hot}</b></td></tr>`);
+  document.getElementById("tSize").innerHTML = h;
+  // 예산 집중도
+  const share = Math.round(d.hot_budget / d.all_budget * 100), par = Math.round(d.pareto * 100);
+  document.getElementById("cPareto").innerHTML = `<p>고의향 기업의 보안 예산 합계는 <b>${Math.round(d.hot_budget / 100).toLocaleString()}억 원</b>으로 전체(${Math.round(d.all_budget / 100).toLocaleString()}억 원)의 ${share}%입니다.</p><div class="bar"><i style="width:${share}%"></i></div>
+    <p style="margin-top:16px">고의향 기업 중 예산 상위 20%가 그 예산의 <b>${par}%</b>를 갖고 있습니다.</p><div class="bar"><i style="width:${par}%"></i></div>
+    <p class="note" style="margin-top:14px">사고 건수 이상치(IQR 기준 ${d.outlier_thr}건 초과)는 ${d.outliers}개사입니다. 이 기업들은 진단 제안의 1순위입니다.</p>`;
+  // Top 10
+  h = "<tr><th>계정</th><th>업종</th><th>규모</th><th>직원 수</th><th>AI 도입</th><th>사고</th><th>보안 예산</th><th>구매 의향</th><th>우선순위</th></tr>";
+  const mxP = d.top[0].priority;
+  d.top.forEach(r => h += `<tr><td>${r.id}</td><td>${r.industry}</td><td>${r.size}</td><td>${r.employees.toLocaleString()}</td><td>${r.ai}</td><td>${r.incidents}</td><td>${Math.round(r.budget).toLocaleString()}</td><td>${r.intent}</td><td><div class="bar"><i style="width:${r.priority / mxP * 100}%"></i></div></td></tr>`);
+  document.getElementById("tTop").innerHTML = h;
+  // 심화 발견
+  const q = d.quad, sq = d.shadow_q, ap = d.by_apps;
+  const cut = Math.round((1 - q[1].incidents / q[0].incidents) * 100);
+  document.getElementById("deepInsights").innerHTML = [
+    `<b>발견 4.</b> AI 도입이 높은 기업은 보안 성숙도가 높아도 사고가 ${q[1].incidents}건입니다. 성숙도가 낮은 쪽(${q[0].incidents}건)보다 ${cut}% 적을 뿐입니다. 기존 보안 투자만으로는 AI 위험이 남습니다.`,
+    `<b>발견 5.</b> 섀도 AI 상위 25% 기업의 사고는 ${sq[3].incidents}건으로 하위 25%(${sq[0].incidents}건)의 ${(sq[3].incidents / sq[0].incidents).toFixed(1)}배입니다. "먼저 보이게 하라"가 첫 메시지입니다.`,
+    `<b>발견 6.</b> LLM 앱이 ${ap[ap.length - 1].band}개인 기업은 사고가 ${ap[ap.length - 1].incidents}건으로 ${ap[0].band}개 기업(${ap[0].incidents}건)의 ${(ap[ap.length - 1].incidents / ap[0].incidents).toFixed(1)}배입니다. 앱이 늘수록 게이트웨이의 가치가 커집니다.`,
+    `<b>발견 7.</b> 고의향 기업 예산의 ${par}%가 상위 20%에 있습니다. 상위 계정은 직판으로, 나머지는 파트너로 나누는 근거입니다.`
+  ].map(t => `<div class="insight">${t}</div>`).join("");
+}
+function calc() {
+  const g = id => +document.getElementById(id).value, fmt = v => (v >= 100 ? (v / 100).toFixed(1) + "억 원" : Math.round(v).toLocaleString() + "백만 원");
+  const emp = g("iEmp"), inc = g("iInc"), cost = g("iCost"), red = g("iRed"), fee = g("iFee");
+  const save = inc * cost * red / 100, spend = emp * fee / 100, net = save - spend;
+  document.getElementById("vEmp").textContent = emp.toLocaleString() + "명"; document.getElementById("vInc").textContent = inc + "건";
+  document.getElementById("vCost").textContent = cost.toLocaleString(); document.getElementById("vRed").textContent = red + "%"; document.getElementById("vFee").textContent = fee;
+  document.getElementById("oNet").textContent = (net < 0 ? "−" : "+") + fmt(Math.abs(net));
+  document.getElementById("oSave").textContent = fmt(save); document.getElementById("oFee").textContent = fmt(spend);
+  document.getElementById("oRoi").textContent = spend ? Math.round(net / spend * 100) + "%" : "-";
+  const be = inc * cost ? spend / (inc * cost) * 100 : Infinity;
+  document.getElementById("oBe").textContent = be <= 100 ? be.toFixed(0) + "%" : "달성 불가 (사고 비용보다 도입 비용이 큼)";
+}
+document.querySelectorAll(".calc input").forEach(i => i.addEventListener("input", calc)); calc();
+document.getElementById("themeBtn").addEventListener("click", e => { const r = document.documentElement, d = r.dataset.theme == "dark";
+  r.dataset.theme = d ? "light" : "dark"; e.target.textContent = d ? "어둡게" : "밝게"; render(); renderDeep(); });
+renderDeep(); matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderDeep);
+document.querySelectorAll("section .card, section .insight, section h2, section .lead, details").forEach(e => e.classList.add("reveal"));
+if ("IntersectionObserver" in window) { const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("on"); io.unobserve(e.target); } }), { threshold: .08 });
+  document.querySelectorAll(".reveal").forEach(e => io.observe(e)); setTimeout(() => document.querySelectorAll(".reveal").forEach(e => e.classList.add("on")), 2500);
+} else document.querySelectorAll(".reveal").forEach(e => e.classList.add("on"));
+render();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+</script>
+</body>
+</html>
